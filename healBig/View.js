@@ -35,7 +35,7 @@ View = (function() {
             this.aladinDiv = this.aladin.aladinDiv;
             this.popup = new Popup(this.aladinDiv, this);
 
-            // new: added multi image survey 
+            // new: aladindded multi image survey 
             this.imageSurveys = [];
             this.createCanvases();
             this.location = location;
@@ -1207,6 +1207,7 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
+        console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
             for (var ipix=0; ipix<npix; ipix++) {
@@ -1215,7 +1216,7 @@ View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            hpxIdx.init();
+            // hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);
@@ -1233,6 +1234,7 @@ View = (function() {
                 lonlat = [radec.ra, radec.dec];
             }
             if (this.imageSurveys[0] && this.imageSurveys[0].longitudeReversed===true) {
+                console.log('setting spatial vector');
                 spatialVector.set(lonlat[0], lonlat[1]);
             }
             else {
@@ -1250,9 +1252,9 @@ View = (function() {
                 radius *= 1.1;
             }
 
-
-
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
+            console.log('getting pixlist');
+                        pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
+                        console.log(pixList);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1286,7 +1288,7 @@ View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            hpxIdx.init();
+            // hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);

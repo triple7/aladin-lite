@@ -1,2 +1,1 @@
-"use strict";
-var HealpixIndex = require('./healpixBig.js');
+var HealpixIndex = require('./healpix');

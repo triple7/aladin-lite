@@ -1,87 +1,104 @@
-SpatialVector = (function() {
-    "use stric";
-    
-    var SpatialVector = function(t, s, i) {
+"use strict";
+module.exports = class SpatialVector {
+    constructor(t, s, i) {
+        "use strict";
         if (t) {
         (this.x = t), (this.y = s), (this.z = i), (this.ra_ = 0), (this.dec_ = 0), (this.okRaDec_ = !1);
     }
-    };
+    }
     
-        var setXYZ = function(t, s, i) {
+        setXYZ(t, s, i) {
             (this.x = t), (this.y = s), (this.z = i), (this.okRaDec_ = !1);
-        };
+        }
         
-        var length = function() {
+        length() {
+            "use strict";
             return Math.sqrt(this.lengthSquared());
-        };
+        }
         
-var lengthSquared = function() {
+lengthSquared() {
+            "use strict";
             return this.x * this.x + this.y * this.y + this.z * this.z;
-        };
+        }
         
-var normalized = function() {
+normalized() {
+            "use strict";
             var t = this.length();
             (this.x /= t), (this.y /= t), (this.z /= t);
-        };
+        }
         
-var set = function(t, s) {
+set(t, s) {
+            "use strict";
             (this.ra_ = t), (this.dec_ = s), (this.okRaDec_ = !0), this.updateXYZ();
-        };
+        }
         
-var angle = function(t) {
+angle(t) {
+            "use strict";
             var s = this.y * t.z - this.z * t.y,
                 i = this.z * t.x - this.x * t.z,
                 n = this.x * t.y - this.y * t.x,
                 a = Math.sqrt(s * s + i * i + n * n);
             return Math.abs(Math.atan2(a, dot(t)));
-        };
+        }
         
-var get = function() {
+get() {
+            "use strict";
             return [x, y, z];
-        };
+        }
         
-var toString = function() {
+toString() {
+            "use strict";
             return "SpatialVector[" + this.x + ", " + this.y + ", " + this.z + "]";
-        };
+        }
         
-var cross = function(s) {
+cross(s) {
+            "use strict";
             return new SpatialVector(this.y * s.z - s.y * this.z, this.z * s.x - s.z * this.x, this.x * s.y - s.x() * this.y);
-        };
+        }
         
-var equal = function(t) {
+equal(t) {
+            "use strict";
             return this.x == t.x && this.y == t.y && this.z == t.z() ? !0 : !1;
-        };
+        }
         
-var mult = function(s) {
+mult(s) {
+            "use strict";
             return new SpatialVector(s * this.x, s * this.y, s * this.z);
-        };
+        }
         
-var dot = function(t) {
+dot(t) {
+            "use strict";
             return this.x * t.x + this.y * t.y + this.z * t.z;
-        };
+        }
         
-var add = function(s) {
+add(s) {
+            "use strict";
             return new SpatialVector(this.x + s.x, this.y + s.y, this.z + s.z);
-            ;}
+        }
         
-var sub = function(s) {
+sub(s) {
+            "use strict";
             return new SpatialVector(this.x - s.x, this.y - s.y, this.z - s.z);
-        };
+        }
         
-var dec = function() {
+dec() {
+            "use strict";
             return this.okRaDec_ || (this.normalized(), this.updateRaDec()), this.dec_;
-        };
+        }
         
-var ra = function() {
+ra() {
+            "use strict";
             return this.okRaDec_ || (this.normalized(), this.updateRaDec()), this.ra_;
-            ;}
+        }
         
-var updateXYZ = function() {
+updateXYZ() {
+            "use strict";
             var t = Math.cos(this.dec_ * Constants.C_PR);
             (this.x = Math.cos(this.ra_ * Constants.C_PR) * t), (this.y = Math.sin(this.ra_ * Constants.C_PR) * t), (this.z = Math.sin(this.dec_ * Constants.C_PR));
-        };
+        }
         
-var updateRaDec = function() {
+updateRaDec() {
+            "use strict";
             this.dec_ = Math.asin(this.z) / Constants.C_PR;
             var t = Math.cos(this.dec_ * Constants.C_PR);
             (this.ra_ =
@@ -95,18 +112,18 @@ var updateRaDec = function() {
                         : 0
                     : 0),
                 (this.okRaDec_ = !0);
-        };
+        }
         
-var toRaRadians = function() {
+toRaRadians() {
+            "use strict";
             var t = 0;
             return (0 != this.x || 0 != this.y) && (t = Math.atan2(this.y, this.x)), 0 > t && (t += 2 * Math.PI), t;
-        };
+        }
         
-var toDeRadians = function() {
+toDeRadians() {
             var t = z / this.length(),
                 s = Math.acos(t);
             return Math.PI / 2 - s;
-        };
- 
-        return SpatialVector;       
-})();
+        }
+        
+}

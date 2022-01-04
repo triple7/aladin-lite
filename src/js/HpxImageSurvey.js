@@ -420,7 +420,6 @@ HpxImageSurvey = (function() {
     	};
 
         // img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
-        console.log(objectURL);
         img.src = objectURL;
     });
     
