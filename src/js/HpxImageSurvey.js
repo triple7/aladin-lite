@@ -129,7 +129,6 @@ HpxImageSurvey = (function() {
         // Default color hue 
         this.colorCorrection = options.colorCorrection;
         
-        
         HpxImageSurvey.SURVEYS_OBJECTS[this.id] = this;
     };
 
@@ -393,34 +392,40 @@ HpxImageSurvey = (function() {
     };
     
     HpxImageSurvey.prototype.retrieveAllskyTextures = function() {
+
+        // Create a blob object for sending workers when downloading images
+         var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
+
+    	var self = this;
     	// start loading of allsky
     	var img = new Image();
     	if (this.useCors) {
             img.crossOrigin = 'anonymous';
         }
-    	var self = this;
+
+        imageWorker.addEventListener('message', event => {
+          // Grab the message data from the event
+          const imageData = event.data
+
+        
+          var objectURL = URL.createObjectURL(imageData.blob);
+          
     	img.onload = function() {
             console.log('loaded image');
     		// sur ipad, le fichier qu'on récupère est 2 fois plus petit. Il faut donc déterminer la taille de la texture dynamiquement
     	    self.allskyTextureSize = img.width/27;
             self.allskyTexture = img;
    
-            /* 
-    		// récupération des 768 textures (NSIDE=4)
-    		for (var j=0; j<29; j++) {
-    			for (var i=0; i<27; i++) {
-    				var c = document.createElement('canvas');
-    				c.width = c.height = self.allskyTextureSize;
-    				c.allSkyTexture = true;
-    				var context = c.getContext('2d');
-    				context.drawImage(img, i*self.allskyTextureSize, j*self.allskyTextureSize, self.allskyTextureSize, self.allskyTextureSize, 0, 0, c.width, c.height);
-    				self.allskyTextures.push(c);
-    			}
-    		}
-            */
     		self.view.requestRedraw();
     	};
-    	img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+
+        // img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+        console.log(objectURL);
+        img.src = objectURL;
+    });
+    
+        const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+        imageWorker.postMessage(imageURL);
     
     };
 
@@ -685,7 +690,7 @@ HpxImageSurvey = (function() {
                 
                 // is the parent tile available ?
                 if (parentNorder>=3 && ! parentTilesToDrawIpix[parentIpix]) {
-                	parentTile = this.tileBuffer.getTile(parentUrl);
+                	parentTile = this.tileBuffer.getPositionsInViewTile(parentUrl);
                 	if (parentTile && Tile.isImageOk(parentTile.img)) {
                 		parentCornersXYView = this.view.getPositionsInView(parentIpix, parentNorder);
                 		if (parentCornersXYView) {

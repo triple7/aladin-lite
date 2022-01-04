@@ -17,8 +17,6 @@
 //    along with Aladin Lite.
 //
 
-
-
 /******************************************************************************
  * Aladin Lite project
  * 
@@ -82,9 +80,18 @@ Downloader = (function() {
 			return;
 		}
 
+       // Create a blob object for sending workers when downloading images
+        var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
+
 		this.nbDownloads++;
 		var downloaderRef = this;
-		next.img.onload = function() {
+        
+        imageWorker.addEventListener('message', event => {
+          // Grab the message data from the event
+          const imageData = event.data
+          var objectURL = URL.createObjectURL(imageData.blob);
+          
+          next.img.onload = function() {
 			downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
 		};
 			
@@ -100,10 +107,12 @@ Downloader = (function() {
 		        delete next.img.crossOrigin;
 		    }
 		}
-		
-		
-		next.img.src = next.url;
-	};
+		next.img.src = objectURL;
+    });
+    
+    const imageURL = next.url;
+    imageWorker.postMessage(imageURL);
+};
 	
 	Downloader.prototype.completeDownload = function(img, success) {
         delete this.urlsInQueue[img.src];
