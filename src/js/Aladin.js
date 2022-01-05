@@ -1542,3 +1542,225 @@ lonlat = CooConversion.GalacticToJ2000(lonlat);
     
 return Aladin;
 })();
+
+
+//// New API ////
+// For developers using Aladin lite: all objects should be created through the API, 
+// rather than creating directly the corresponding JS objects
+// This facade allows for more flexibility as objects can be updated/renamed harmlessly
+
+//@API
+A.aladin = function(divSelector, options) {
+  return new Aladin($(divSelector)[0], options);
+};
+
+//@API
+// TODO : lecture de properties
+A.imageLayer = function(id, name, rootUrl, options) {
+    return new HpxImageSurvey(id, name, rootUrl, null, null, options);
+};
+
+// @API
+A.source = function(ra, dec, data, options) {
+    return new cds.Source(ra, dec, data, options);
+};
+
+// @API
+A.marker = function(ra, dec, options, data) {
+    options = options || {};
+    options['marker'] = true;
+    return A.source(ra, dec, data, options);
+};
+
+// @API
+A.polygon = function(raDecArray) {
+    var l = raDecArray.length;
+    if (l>0) {
+        // close the polygon if needed
+        if (raDecArray[0][0]!=raDecArray[l-1][0] || raDecArray[0][1]!=raDecArray[l-1][1]) {
+            raDecArray.push([raDecArray[0][0], raDecArray[0][1]]);
+        }
+    }
+    return new Footprint(raDecArray);
+};
+
+//@API
+A.polyline = function(raDecArray, options) {
+    return new Polyline(raDecArray, options);
+};
+
+
+// @API
+A.circle = function(ra, dec, radiusDeg, options) {
+    return new Circle([ra, dec], radiusDeg, options);
+};
+
+// @API
+A.graphicOverlay = function(options) {
+    return new Overlay(options);
+};
+
+// @API
+A.catalog = function(options) {
+    return new cds.Catalog(options);
+};
+
+// @API
+A.catalogHiPS = function(rootURL, options) {
+    return new ProgressiveCat(rootURL, null, null, options);
+};
+
+// @API
+/*
+ * return a Box GUI element to insert content
+ */
+Aladin.prototype.box = function(options) {
+    var box = new Box(options);
+    box.$parentDiv.appendTo(this.aladinDiv);
+
+    return box;
+};
+
+// @API
+/*
+ * show popup at ra, dec position with given title and content
+ */
+Aladin.prototype.showPopup = function(ra, dec, title, content) {
+    this.view.catalogForPopup.removeAll();
+    var marker = A.marker(ra, dec, {popupTitle: title, popupDesc: content, useMarkerDefaultIcon: false});
+    this.view.catalogForPopup.addSources(marker);
+    this.view.catalogForPopup.show();
+
+    this.view.popup.setTitle(title);
+    this.view.popup.setText(content);
+    this.view.popup.setSource(marker);
+    this.view.popup.show();
+};
+
+// @API
+/*
+ * hide popup
+ */
+Aladin.prototype.hidePopup = function() {
+    this.view.popup.hide();
+};
+
+// @API
+/*
+ * return a URL allowing to share the current view
+ */
+Aladin.prototype.getShareURL = function() {
+    var radec = this.getRaDec();
+    var coo = new Coo();
+    coo.prec = 7;
+    coo.lon = radec[0];
+    coo.lat = radec[1];
+
+    return 'http://aladin.unistra.fr/AladinLite/?target=' + encodeURIComponent(coo.format('s')) +
+           '&fov=' + this.getFov()[0].toFixed(2) + '&survey=' + encodeURIComponent(this.getBaseImageLayer().id || this.getBaseImageLayer().rootUrl);
+};
+
+// @API
+/*
+ * return, as a string, the HTML embed code
+ */
+Aladin.prototype.getEmbedCode = function() {
+    var radec = this.getRaDec();
+    var coo = new Coo();
+    coo.prec = 7;
+    coo.lon = radec[0];
+    coo.lat = radec[1];
+
+    var survey = this.getBaseImageLayer().id;
+    var fov = this.getFov()[0];
+    var s = '';
+    s += '<link rel="stylesheet" href="http://aladin.unistra.fr/AladinLite/api/v2/latest/aladin.min.css" />\n';
+    s += '<script type="text/javascript" src="//code.jquery.com/jquery-1.9.1.min.js" charset="utf-8"></script>\n';
+    s += '<div id="aladin-lite-div" style="width:400px;height:400px;"></div>\n';
+    s += '<script type="text/javascript" src="http://aladin.unistra.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>\n';
+    s += '<script type="text/javascript">\n';
+    s += 'var aladin = A.aladin("#aladin-lite-div", {survey: "' + survey + 'P/DSS2/color", fov: ' + fov.toFixed(2) + ', target: "' + coo.format('s') + '"});\n';
+    s += '</script>';
+    return s;
+};
+
+// @API
+/*
+ * Creates remotely a HiPS from a FITS image URL and displays it
+ */
+Aladin.prototype.displayFITS = function(url, options, successCallback, errorCallback) {
+    options = options || {};
+    var data = {url: url};
+    if (options.color) {
+        data.color = true;
+    }
+    if (options.outputFormat) {
+        data.format = options.outputFormat;
+    }
+    if (options.order) {
+        data.order = options.order;
+    }
+    if (options.nocache) {
+        data.nocache = options.nocache;
+    }
+    var self = this;
+    $.ajax({
+        url: 'https://alasky.unistra.fr/cgi/fits2HiPS',
+        data: data,
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status!='success') {
+                console.error('An error occured: ' + response.message);
+                if (errorCallback) {
+                    errorCallback(response.message);
+                }
+                return;
+            }
+            var label = options.label || "FITS image"; 
+            var meta = response.data.meta;
+            self.setOverlayImageLayer(self.createImageSurvey(label, label, response.data.url, "equatorial", meta.max_norder, {imgFormat: 'png'}));
+            var transparency = (options && options.transparency) || 1.0;
+            self.getOverlayImageLayer().setAlpha(transparency);
+
+            var executeDefaultSuccessAction = true;
+            if (successCallback) {
+                executeDefaultSuccessAction = successCallback(meta.ra, meta.dec, meta.fov);
+            }
+            if (executeDefaultSuccessAction===true) {
+                self.gotoRaDec(meta.ra, meta.dec);
+                self.setFoV(meta.fov);
+            }
+
+        }
+    });
+
+};
+
+// @API
+/*
+ * Creates remotely a HiPS from a JPEG or PNG image with astrometry info
+ * and display it
+ */
+Aladin.prototype.displayJPG = Aladin.prototype.displayPNG = function(url, options, successCallback, errorCallback) {
+    options = options || {};
+    options.color = true;
+    options.label = "JPG/PNG image";
+    options.outputFormat = 'png';
+    this.displayFITS(url, options, successCallback, errorCallback);
+};
+
+Aladin.prototype.setReduceDeformations = function(reduce) {
+    this.reduceDeformations = reduce;
+    this.view.requestRedraw();
+}
+
+
+
+// conservé pour compatibilité avec existant
+// @oldAPI
+if ($) {
+    $.aladin = A.aladin;
+}
+
+// TODO: callback function onAladinLiteReady
