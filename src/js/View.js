@@ -1554,9 +1554,12 @@ View = (function() {
      * compute and set the norder corresponding to the current view resolution
      */
     View.prototype.computeNorder = function() {
+                console.log('max order base layer '+this.imageSurveys[0].maxOrder);
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
-        var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution); // 512 = size of a "tile" image
+        var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
+        console.log('nside is '+nside);
+         // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);
         this.realNorder = norder;

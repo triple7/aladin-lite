@@ -1276,6 +1276,7 @@ HealpixIndex.right_next_pixel = function(nside, { f, x, y}) {
     };
 
 HealpixIndex.corners_nest = function(ipix, nside) {
+    console.log('getting corners');
         const { f, x, y } = HealpixIndex.nest2fxy(nside, ipix);
         const { t, u } = HealpixIndex.fxy2tu(nside, f, x, y);
         const d =HealpixIndex.PI_4 / nside;
@@ -1605,12 +1606,14 @@ HealpixIndex.assert = function(condition) {
         }
     };
 
-    HealpixIndex.calculateNSide = function(s) {
-        for (var i = 0, n = s * s, a = 180 / Constants.PI, e = 3600 * 3600 * 4 * Constants.PI * a * a, h = Utils.castToInt(e / n), r = h / 12, o = Math.sqrt(r), c = HealpixIndex.NS_MAX, u = 0, p = 0; HealpixIndex.NSIDELIST.length > p; p++)
-            if ((c >= Math.abs(o - HealpixIndex.NSIDELIST[p]) && ((c = Math.abs(o - HealpixIndex.NSIDELIST[p])), (i = HealpixIndex.NSIDELIST[p]), (u = p)), o > i && HealpixIndex.NS_MAX > o && (i = HealpixIndex.NSIDELIST[u + 1]), o > HealpixIndex.NS_MAX))
-                return console.log("nside cannot be bigger than " + HealpixIndex.NS_MAX), HealpixIndex.NS_MAX;
-        return i;
-    };
+    // HealpixIndex.calculateNSide = function(s) {
+    //     console.log('nside max is '+HealpixIndex.NS_MAX);
+    //     for (var i = 0, n = s * s, a = 180 / Constants.PI, e = 3600 * 3600 * 4 * Constants.PI * a * a, h = Utils.castToInt(e / n), r = h / 12, o = Math.sqrt(r), c = HealpixIndex.NS_MAX, u = 0, p = 0; HealpixIndex.NSIDELIST.length > p; p++)
+    //         if ((c >= Math.abs(o - HealpixIndex.NSIDELIST[p]) && ((c = Math.abs(o - HealpixIndex.NSIDELIST[p])), (i = HealpixIndex.NSIDELIST[p]), (u = p)), o > i && HealpixIndex.NS_MAX > o && (i = HealpixIndex.NSIDELIST[u + 1]), o > HealpixIndex.NS_MAX))
+    //             return console.log("nside cannot be bigger than " + HealpixIndex.NS_MAX), HealpixIndex.NS_MAX;
+    //     return i;
+    // };
+    
     return HealpixIndex;
 })();
 //=================================
@@ -3344,7 +3347,7 @@ HealpixCache = (function() {
         console.log('got generated npix '+npix);
         var corners;
     	for (var ipix=0; ipix<npix; ipix++) {
-            corners =  hpxIdx.corners_nest(ipix, 1);
+            corners = hpxIdx.corners_nest(ipix, 1);
             // console.log('corners '+corners[0]);
     		HealpixCache.staticCache.corners.nside8.push(corners);
     	}
@@ -13013,9 +13016,12 @@ View = (function() {
      * compute and set the norder corresponding to the current view resolution
      */
     View.prototype.computeNorder = function() {
+                console.log('max order base layer '+this.imageSurveys[0].maxOrder);
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
-        var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution); // 512 = size of a "tile" image
+        var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
+        console.log('nside is '+nside);
+         // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);
         this.realNorder = norder;
@@ -25157,7 +25163,6 @@ View = (function() {
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
         if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
-            console.log("Actually I'm being CALLED!!!!");
                 if (this.aladin.reduceDeformations==null) {
                     imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
                 } else {
@@ -25165,14 +25170,13 @@ View = (function() {
                 }
         }
     }
-        
+        // This block looks very similar to the last but doesn't appear to get called.    
+
         // redraw overlay image survey
         // TODO : does not work if different frames 
         // TODO: use HpxImageSurvey.draw method !!
         if (this.overlayImageSurvey && this.overlayImageSurvey.isReady) {
             imageCtx.globalAlpha = this.overlayImageSurvey.getAlpha();
-
-            console.log("I'm being CALLED!!!!");
 
             if (this.aladin.reduceDeformations==null) {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, !this.dragging, this.curOverlayNorder);

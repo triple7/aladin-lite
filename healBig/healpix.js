@@ -675,11 +675,13 @@ HealpixIndex.assert = function(condition) {
         }
     };
 
-    HealpixIndex.calculateNSide = function(s) {
-        for (var i = 0, n = s * s, a = 180 / Constants.PI, e = 3600 * 3600 * 4 * Constants.PI * a * a, h = Utils.castToInt(e / n), r = h / 12, o = Math.sqrt(r), c = HealpixIndex.NS_MAX, u = 0, p = 0; HealpixIndex.NSIDELIST.length > p; p++)
-            if ((c >= Math.abs(o - HealpixIndex.NSIDELIST[p]) && ((c = Math.abs(o - HealpixIndex.NSIDELIST[p])), (i = HealpixIndex.NSIDELIST[p]), (u = p)), o > i && HealpixIndex.NS_MAX > o && (i = HealpixIndex.NSIDELIST[u + 1]), o > HealpixIndex.NS_MAX))
-                return console.log("nside cannot be bigger than " + HealpixIndex.NS_MAX), HealpixIndex.NS_MAX;
-        return i;
-    };
+    // HealpixIndex.calculateNSide = function(s) {
+    //     console.log('nside max is '+HealpixIndex.NS_MAX);
+    //     for (var i = 0, n = s * s, a = 180 / Constants.PI, e = 3600 * 3600 * 4 * Constants.PI * a * a, h = Utils.castToInt(e / n), r = h / 12, o = Math.sqrt(r), c = HealpixIndex.NS_MAX, u = 0, p = 0; HealpixIndex.NSIDELIST.length > p; p++)
+    //         if ((c >= Math.abs(o - HealpixIndex.NSIDELIST[p]) && ((c = Math.abs(o - HealpixIndex.NSIDELIST[p])), (i = HealpixIndex.NSIDELIST[p]), (u = p)), o > i && HealpixIndex.NS_MAX > o && (i = HealpixIndex.NSIDELIST[u + 1]), o > HealpixIndex.NS_MAX))
+    //             return console.log("nside cannot be bigger than " + HealpixIndex.NS_MAX), HealpixIndex.NS_MAX;
+    //     return i;
+    // };
+    
     return HealpixIndex;
 })();

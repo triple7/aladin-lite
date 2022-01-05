@@ -54,7 +54,7 @@ HealpixCache = (function() {
         console.log('got generated npix '+npix);
         var corners;
     	for (var ipix=0; ipix<npix; ipix++) {
-            corners =  hpxIdx.corners_nest(ipix, 1);
+            corners = hpxIdx.corners_nest(ipix, 1);
             // console.log('corners '+corners[0]);
     		HealpixCache.staticCache.corners.nside8.push(corners);
     	}
