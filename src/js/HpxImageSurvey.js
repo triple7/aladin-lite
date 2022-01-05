@@ -345,7 +345,15 @@ HpxImageSurvey = (function() {
          "maxOrder": 9,
          "frame": "equatorial",
          "format": "jpeg"
-     }
+     },
+     {
+        "id": "P/HST/V",
+        "url": "http://alasky.u-strasbg.fr/HST-hips/filter_V_hips",
+        "name": "HST V",
+        "maxOrder": 13,
+        "frame": "equatorial",
+        "format": "png fits"
+    }
   ];
 
 

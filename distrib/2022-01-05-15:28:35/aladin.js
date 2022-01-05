@@ -10598,7 +10598,15 @@ HpxImageSurvey = (function() {
          "maxOrder": 9,
          "frame": "equatorial",
          "format": "jpeg"
-     }
+     },
+     {
+        "id": "P/HST/V",
+        "url": "http://alasky.u-strasbg.fr/HST-hips/filter_V_hips",
+        "name": "HST V",
+        "maxOrder": 13,
+        "frame": "equatorial",
+        "format": "png fits"
+    }
   ];
 
 
@@ -23303,7 +23311,15 @@ HpxImageSurvey = (function() {
          "maxOrder": 9,
          "frame": "equatorial",
          "format": "jpeg"
-     }
+     },
+     {
+        "id": "P/HST/V",
+        "url": "http://alasky.u-strasbg.fr/HST-hips/filter_V_hips",
+        "name": "HST V",
+        "maxOrder": 13,
+        "frame": "equatorial",
+        "format": "png fits"
+    }
   ];
 
 
@@ -23375,7 +23391,7 @@ HpxImageSurvey = (function() {
     			}
     		}
             */
-    		self.view.requestRedraw();
+    		self.view.requestRedraw(); // Doesn't this also appear in the callback during HpxImageSurver.init(view, callback)
     	};
     	img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
     
@@ -25141,10 +25157,10 @@ View = (function() {
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
         if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
+            console.log("Actually I'm being CALLED!!!!");
                 if (this.aladin.reduceDeformations==null) {
-
                     imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
-                }                else {
+                } else {
                     imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
                 }
         }
@@ -25155,6 +25171,8 @@ View = (function() {
         // TODO: use HpxImageSurvey.draw method !!
         if (this.overlayImageSurvey && this.overlayImageSurvey.isReady) {
             imageCtx.globalAlpha = this.overlayImageSurvey.getAlpha();
+
+            console.log("I'm being CALLED!!!!");
 
             if (this.aladin.reduceDeformations==null) {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, !this.dragging, this.curOverlayNorder);
@@ -25880,14 +25898,14 @@ View = (function() {
                 newImageSurvey = HpxImageSurvey.getSurveyFromId(HpxImageSurvey.DEFAULT_SURVEY_ID, blendingMode, hue, alpha);
                 unknownSurveyId = imageSurvey;
             }
-        }        else {
+        } else {
             newImageSurvey = imageSurvey;
         }
  
         /* Feature: added filter of remaining urls in download queue to be used to selectively remove tiles        
         */
         
-                var remaining = this.downloader.emptyQueue();
+        var remaining = this.downloader.emptyQueue();
         for (buffer of this.tileBuffers) {
             buffer.removeTiles(remaining);
         }
