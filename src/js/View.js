@@ -985,15 +985,15 @@ View = (function() {
         // Added going through all image surveys with the same routine
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
-        if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
+            if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
                 if (this.aladin.reduceDeformations==null) {
 
                     imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
                 }                else {
                     imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
                 }
+            }
         }
-    }
         
         // redraw overlay image survey
         // TODO : does not work if different frames 
@@ -1253,8 +1253,9 @@ View = (function() {
             }
 
             console.log('getting pixlist');
-                        pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-                        console.log(pixList);
+            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
+            console.log("pix list has lenght"+pixList.length);
+
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1326,6 +1327,8 @@ View = (function() {
             
                 
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
+            console.log("pix list has lenght"+pixList.length);
+
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);

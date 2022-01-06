@@ -160,32 +160,31 @@ window.webkit.messageHandlers.update_image.postMessage({
 
 // Testing an overlay survey image        
 setTimeout( function() {
-    // aladin.setImageSurvey(aladin.createImageSurvey("P/HST/wideV", "P/HST/wideV", "http://alasky.u-strasbg.fr/2MASS/Color/", 'equatorial', 13, {imgFormat: 'png'}), 0, "source-over", "#000", 1.0);
     addSurveylayer("P/allWISE/W1", 1, "source-over", "#ff0000", 1.0);
-        // addSurveylayer("P/2MASS/color", 2, "lighten", "#0f0");
-            // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f");
+        addSurveylayer("P/2MASS/color", 2, "source-over", "#00f", 1.0);
+            // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f", 1.0);
 }, 3000);
 
 // Various observers
         
-        let canvas = document.querySelector('#aladin-lite-div');
-        let canvasObserver = new MutationObserver(updateImage);        
-            canvasObserver.observe(canvas, {
-                        childList: true
-                    });
-                    
-                    let locationSelector = document.querySelector('.aladin-location');
-                    let locationObserver = new MutationObserver(updateImage);
-                        locationObserver.observe(locationSelector, {
-                                    childList: true
-                                });
+let canvas = document.querySelector('#aladin-lite-div');
+let canvasObserver = new MutationObserver(updateImage);        
+canvasObserver.observe(canvas, {
+    childList: true
+});
+            
+let locationSelector = document.querySelector('.aladin-location');
+let locationObserver = new MutationObserver(updateImage);
+locationObserver.observe(locationSelector, {
+    childList: true
+});
 
-                                let fovSelector = document.querySelector('.aladin-fov');
-                                let fovObserver = new MutationObserver(updateImage);
-                                    fovObserver.observe(fovSelector, {
-                                                childList: true
-                                            });
-               
+let fovSelector = document.querySelector('.aladin-fov');
+let fovObserver = new MutationObserver(updateImage);
+fovObserver.observe(fovSelector, {
+    childList: true
+});
+        
 </script>
 </body>
 </html>

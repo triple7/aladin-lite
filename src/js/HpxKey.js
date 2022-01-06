@@ -75,7 +75,7 @@ HpxKey = (function() {
 
     HpxKey.prototype = {
 
-        draw: function(ctx, bCtx, view, index) {
+        draw: function(ctx, view, index) {
 
             var n = 0; // number of traced triangles
             var corners = this.getProjViewCorners(view);
@@ -87,11 +87,10 @@ HpxKey = (function() {
 
             var now = new Date().getTime();
             var updateNeededTiles = this.ancestor==null && this.norder>=3 && (now-this.hips.lastUpdateDateNeededTiles) > 0.1;
-
             try {
                 if (isTooLarge(corners)) {
 // console.log('too large');
-                    var m = this.drawChildren(ctx, bCtx, view, index, MAX_PARENTE);
+                    var m = this.drawChildren(ctx, view, index, MAX_PARENTE);
 
                     // Si aucun sous-losange n'a pu être dessiné, je trace tout de même le père
                     if( m>0 ) {
@@ -100,7 +99,7 @@ HpxKey = (function() {
                 }
             }
             catch(e) {
-                console.log('error '+e);
+                // console.log('error '+e);
                 return 0;
             }
 
@@ -129,7 +128,7 @@ HpxKey = (function() {
                 const hue = view.imageSurveys[index].colorCorrection;
                 const alpha = view.imageSurveys[index].alpha;
 
-                this.hips.drawOneTile2(blend, hue, ctx, bCtx, img, corners, w, alpha, this.dx, this.dy, true, norder);
+                this.hips.drawOneTile2(blend, hue, ctx, img, corners, w, alpha, this.dx, this.dy, true, norder);
                 n += 2;
             }
             else if (updateNeededTiles && ! tile) {
@@ -143,7 +142,7 @@ HpxKey = (function() {
             return n;
         },
 
-        drawChildren: function(ctx, bCtx, view, index, maxParente) {
+        drawChildren: function(ctx, view, index, maxParente) {
             var n=0;
             var limitOrder = 13 //13; // corresponds to NSIDE=8192, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
@@ -152,7 +151,7 @@ HpxKey = (function() {
                     for ( var i=0; i<4; i++ ) {
 //console.log(i);
                         if ( children[i]!=null ) {
-                            n += children[i].draw(ctx, bCtx, view, index, maxParente);
+                            n += children[i].draw(ctx, view, index, maxParente);
                         }
                     }
                 }

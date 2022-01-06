@@ -10056,7 +10056,7 @@ HpxKey = (function() {
 
     HpxKey.prototype = {
 
-        draw: function(ctx, bCtx, view, index) {
+        draw: function(ctx, view, index) {
 
             var n = 0; // number of traced triangles
             var corners = this.getProjViewCorners(view);
@@ -10068,11 +10068,10 @@ HpxKey = (function() {
 
             var now = new Date().getTime();
             var updateNeededTiles = this.ancestor==null && this.norder>=3 && (now-this.hips.lastUpdateDateNeededTiles) > 0.1;
-
             try {
                 if (isTooLarge(corners)) {
 // console.log('too large');
-                    var m = this.drawChildren(ctx, bCtx, view, index, MAX_PARENTE);
+                    var m = this.drawChildren(ctx, view, index, MAX_PARENTE);
 
                     // Si aucun sous-losange n'a pu être dessiné, je trace tout de même le père
                     if( m>0 ) {
@@ -10081,7 +10080,7 @@ HpxKey = (function() {
                 }
             }
             catch(e) {
-                console.log('error '+e);
+                // console.log('error '+e);
                 return 0;
             }
 
@@ -10110,7 +10109,7 @@ HpxKey = (function() {
                 const hue = view.imageSurveys[index].colorCorrection;
                 const alpha = view.imageSurveys[index].alpha;
 
-                this.hips.drawOneTile2(blend, hue, ctx, bCtx, img, corners, w, alpha, this.dx, this.dy, true, norder);
+                this.hips.drawOneTile2(blend, hue, ctx, img, corners, w, alpha, this.dx, this.dy, true, norder);
                 n += 2;
             }
             else if (updateNeededTiles && ! tile) {
@@ -10124,7 +10123,7 @@ HpxKey = (function() {
             return n;
         },
 
-        drawChildren: function(ctx, bCtx, view, index, maxParente) {
+        drawChildren: function(ctx, view, index, maxParente) {
             var n=0;
             var limitOrder = 13 //13; // corresponds to NSIDE=8192, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
@@ -10133,7 +10132,7 @@ HpxKey = (function() {
                     for ( var i=0; i<4; i++ ) {
 //console.log(i);
                         if ( children[i]!=null ) {
-                            n += children[i].draw(ctx, bCtx, view, index, maxParente);
+                            n += children[i].draw(ctx, view, index, maxParente);
                         }
                     }
                 }
@@ -10724,7 +10723,36 @@ HpxImageSurvey = (function() {
             }
 
             if (curOverlayNorder>=3) {
-                this.drawHighres(ctx, bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+                if (index == 0) { // Draw on the image canvas
+                    this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
+                } else {
+                    // Draw to blendCanvas
+                    this.drawHighres(bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+
+                    // Get overlay parameters
+                    const blend = view.imageSurveys[index].blendingMode;
+                    const hue = view.imageSurveys[index].colorCorrection;
+                    const alpha = view.imageSurveys[index].alpha;
+
+                    // Add hue
+                    bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
+                    bCtx.fillStyle = hue;
+                    bCtx.globalAlpha = 1.0; // Or should this be alpha?
+                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+
+                    // Blend with imageCanvas
+                    overlay = bCtx.canvas;
+                    ctx.globalCompositeOperation = blend;
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(overlay, 0, 0);
+
+                    // Clear blend canvas so it is ready for the next overlay
+                    bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+                    // I don't really know why this last step is necessary but
+                    // I get a black screen without it.
+                    bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
+                }
+                
             }
 /*
             else {
@@ -11060,8 +11088,7 @@ HpxImageSurvey = (function() {
         		alpha,
                 dx, dy, applyCorrection);
     };
-    
-       HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, ctx, bCtx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
+        HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, index, ctx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
 
         // apply CM
         var newImg = this.useCors ? this.cm.apply(img) : img;
@@ -11073,7 +11100,7 @@ HpxImageSurvey = (function() {
     //                  && round(b[0].vy - b[2].vy) == round(b[1].vy - b[3].vy); 
 
         var delta = norder<=3 ? (textureSize<100 ? 0.5 : 0.2) : 0;
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[0].vx, cornersXYView[0].vy,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
@@ -11082,7 +11109,7 @@ HpxImageSurvey = (function() {
                 0+delta, textureSize-delta,
                 alpha,
                 dx, dy, applyCorrection, norder);
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
                 cornersXYView[2].vx, cornersXYView[2].vy,
@@ -11093,7 +11120,7 @@ HpxImageSurvey = (function() {
                 dx, dy, applyCorrection, norder);
     };
  
-    function drawTexturedTriangle2(blend, hue, ctx, bCtx, img, x0, y0, x1, y1, x2, y2,
+    function drawTexturedTriangle2(blend, hue, index, ctx, img, x0, y0, x1, y1, x2, y2,
                                         u0, v0, u1, v1, u2, v2, alpha,
                                         dx, dy, applyCorrection, norder) {
 
@@ -11116,11 +11143,11 @@ HpxImageSurvey = (function() {
         var yc = (y0 + y1 + y2) / 3;
 
         ctx.save();
-        bCtx.save();
+        // bCtx.save();
         
         if (alpha) {
             ctx.globalAlpha = alpha;
-            bCtx.globalAlpha = alpha;
+            // bCtx.globalAlpha = alpha;
         }
         
 /*
@@ -11168,7 +11195,7 @@ coeff = 0.02;
              (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         );
         
-        if (hue != '#000') { // Drawing an overlay image
+        if (index > 0) { // Drawing an overlay image
         // bCtx.transform(
         //     -(v0 * (x2 - x1) -  v1 * x2  + v2 *  x1 + (v1 - v2) * x0) * d_inv, // m11
         //     (v1 *  y2 + v0  * (y1 - y2) - v2 *  y1 + (v2 - v1) * y0) * d_inv, // m12
@@ -11179,37 +11206,30 @@ coeff = 0.02;
         // );
 
         // Draw the overlay image onto the blendCanvas 
-        compositeHueToLayer(bCtx, img, hue);
+        // compositeHueToLayer(bCtx, img, hue);
         
         // get the blendCanvas
-        var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
+        // var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
 
-        ctx.globalCompositeOperation = "lighten";
+        ctx.globalCompositeOperation = blend;
         ctx.globalAlpha = alpha;
         ctx.drawImage(overlay, 0, 0);
         
         // clear the blendCanvas so it is ready to take another image
-        bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+        // bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
         
     } else { // Drawing the base survey (assuming the hue is #000 ???)
         ctx.globalCompositeOperation = blend;
         ctx.drawImage(img, 0, 0);
     }
         ctx.restore();
-        bCtx.restore();
+        // bCtx.restore();
     }
 
     function onlyUnique(value, index, self) {
       return self.indexOf(value) === index;
     }
-    
-// Helper method to create off screen composite of color hue with layer
-    function compositeHueToLayer(bCtx, img, hue) {
-                bCtx.drawImage(img, 0, 0);
-                        bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
-                bCtx.fillStyle = hue;
-                bCtx.fillRect(0, 0, img.width, img.height);
-            }
+
             
     // uses affine texture mapping to draw a textured triangle
     // at screen coordinates [x0, y0], [x1, y1], [x2, y2] from
@@ -11274,9 +11294,6 @@ coeff = 0.02;
              (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         );
         ctx.drawImage(img, 0, 0);
-        //ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width, img.height); 
-        
-    //    ctx.globalAlpha = 1.0;
     
         ctx.restore();
     }
@@ -12444,15 +12461,15 @@ View = (function() {
         // Added going through all image surveys with the same routine
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
-        if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
+            if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
                 if (this.aladin.reduceDeformations==null) {
 
                     imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
                 }                else {
                     imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
                 }
+            }
         }
-    }
         
         // redraw overlay image survey
         // TODO : does not work if different frames 
@@ -12712,8 +12729,9 @@ View = (function() {
             }
 
             console.log('getting pixlist');
-                        pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-                        console.log(pixList);
+            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
+            console.log("pix list has lenght"+pixList.length);
+
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -12785,6 +12803,8 @@ View = (function() {
             
                 
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
+            console.log("pix list has lenght"+pixList.length);
+
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -22769,7 +22789,7 @@ HpxKey = (function() {
 
     HpxKey.prototype = {
 
-        draw: function(ctx, bCtx, view, index) {
+        draw: function(ctx, view, index) {
 
             var n = 0; // number of traced triangles
             var corners = this.getProjViewCorners(view);
@@ -22785,7 +22805,7 @@ HpxKey = (function() {
             try {
                 if (isTooLarge(corners)) {
 // console.log('too large');
-                    var m = this.drawChildren(ctx, bCtx, view, index, MAX_PARENTE);
+                    var m = this.drawChildren(ctx, view, index, MAX_PARENTE);
 
                     // Si aucun sous-losange n'a pu être dessiné, je trace tout de même le père
                     if( m>0 ) {
@@ -22794,7 +22814,7 @@ HpxKey = (function() {
                 }
             }
             catch(e) {
-                // console.log('error '+e);
+                console.log('error '+e);
                 return 0;
             }
 
@@ -22808,6 +22828,7 @@ HpxKey = (function() {
             //console.log(corners);
             var url = this.hips.getTileURL(norder, npix);
             var tile = this.hips.tileBuffer.getTile(url);
+            
             if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
                 if (!this.allskyTexture && !this.hips.tileSize) {
                     this.hips.tileSize = tile.img.width;
@@ -22821,8 +22842,8 @@ HpxKey = (function() {
                 const blend = view.imageSurveys[index].blendMode;
                 const hue = view.imageSurveys[index].colorCorrection;
                 const alpha = view.imageSurveys[index].alpha;
-
-                this.hips.drawOneTile2(blend, hue, ctx, bCtx, img, corners, w, alpha, this.dx, this.dy, true, norder);
+                
+                this.hips.drawOneTile2(blend, hue, index, ctx, img, corners, w, alpha, this.dx, this.dy, true, norder);
                 n += 2;
             }
             else if (updateNeededTiles && ! tile) {
@@ -22836,7 +22857,7 @@ HpxKey = (function() {
             return n;
         },
 
-        drawChildren: function(ctx, bCtx, view, index, maxParente) {
+        drawChildren: function(ctx, view, index, maxParente) {
             var n=0;
             var limitOrder = 13 //13; // corresponds to NSIDE=8192, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
@@ -22845,7 +22866,10 @@ HpxKey = (function() {
                     for ( var i=0; i<4; i++ ) {
 //console.log(i);
                         if ( children[i]!=null ) {
-                            n += children[i].draw(ctx, bCtx, view, index, maxParente);
+                            // Isn't each element a HpxKey?
+                            // Then HpxKey.draw() only takes 3 arguments
+                            // What is maxParente doing???
+                            n += children[i].draw(ctx, view, index, maxParente);
                         }
                     }
                 }
@@ -23430,9 +23454,39 @@ HpxImageSurvey = (function() {
             if (curOverlayNorder<=4) {
                 this.drawAllsky(ctx, bCtx, cornersXYViewMapAllsky, norder4Display, view, index);
             }
-
+            
             if (curOverlayNorder>=3) {
-                this.drawHighres(ctx, bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+                if (index == 0) {
+                    this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
+                } else {
+                    // Draw to blendCanvas
+                    this.drawHighres(bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+
+                    // Get overlay parameters
+                    const blend = view.imageSurveys[index].blendingMode;
+                    const hue = view.imageSurveys[index].colorCorrection;
+                    const alpha = view.imageSurveys[index].alpha;
+
+                    // Add hue
+                    bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
+                    bCtx.fillStyle = hue;
+                    bCtx.globalAlpha = 1.0; // Or should this be alpha?
+                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+
+                    // Blend with imageCanvas
+                    overlay = bCtx.canvas;
+                    ctx.globalCompositeOperation = blend;
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(overlay, 0, 0);
+
+                    // Clear blend canvas so it is ready for the next overlay
+                    bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
+                    bCtx.globalAlpha = 1.0;
+                    bCtx.fillStyle = "#000";
+                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+                    // bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
+                }
+                
             }
 /*
             else {
@@ -23455,7 +23509,7 @@ HpxImageSurvey = (function() {
 
     };
 
-    HpxImageSurvey.prototype.drawHighres = function(ctx, bCtx, cornersXYViewMap, norder, view, index) {
+    HpxImageSurvey.prototype.drawHighres = function(ctx, cornersXYViewMap, norder, view, index) {
 //////////////////////////////
         var parentTilesToDraw = [];
         var parentTilesToDrawIndex = {};
@@ -23497,17 +23551,17 @@ HpxImageSurvey = (function() {
         // draw parent tiles
         for (var k=0; k<parentTilesToDraw.length; k++) {
             var t = parentTilesToDraw[k];
-            new HpxKey(t.order, t.ipix, this, tSize, tSize).draw(ctx, bCtx, view, index);
+            new HpxKey(t.order, t.ipix, this, tSize, tSize).draw(ctx, view, index);
         }
 
         // TODO : we could have a pool of HpxKey to prevent object re-creation at each frame
         // draw tiles
         for (var k=0; k<cornersXYViewMap.length; k++) {
-            new HpxKey(norder, cornersXYViewMap[k].ipix, this, tSize, tSize).draw(ctx, bCtx, view, index);
+            new HpxKey(norder, cornersXYViewMap[k].ipix, this, tSize, tSize).draw(ctx, view, index);
         }
     };
 
-    HpxImageSurvey.prototype.drawAllsky = function(ctx, bCtx, cornersXYViewMap, norder, view, index) {
+    HpxImageSurvey.prototype.drawAllsky = function(ctx, cornersXYViewMap, norder, view, index) {
         // for norder deeper than 6, we think it brings nothing to draw the all-sky
         if (this.view.curNorder>6) {
             return;
@@ -23530,7 +23584,7 @@ HpxImageSurvey = (function() {
         }
 
         for (var k=0; k<hpxKeys.length; k++) {
-            hpxKeys[k].draw(ctx, bCtx, view, index);
+            hpxKeys[k].draw(ctx, view, index);
         }
     };
 
@@ -23742,7 +23796,6 @@ HpxImageSurvey = (function() {
         // apply CM
         var newImg = this.useCors ? this.cm.apply(img) : img;
         
-        
     	// is the tile a diamond ?
     //	var round = AladinUtils.myRound;
     //	var b = cornersXYView;
@@ -23769,7 +23822,7 @@ HpxImageSurvey = (function() {
                 dx, dy, applyCorrection);
     };
     
-       HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, ctx, bCtx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
+       HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, index, ctx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
 
         // apply CM
         var newImg = this.useCors ? this.cm.apply(img) : img;
@@ -23781,7 +23834,7 @@ HpxImageSurvey = (function() {
     //                  && round(b[0].vy - b[2].vy) == round(b[1].vy - b[3].vy); 
 
         var delta = norder<=3 ? (textureSize<100 ? 0.5 : 0.2) : 0;
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[0].vx, cornersXYView[0].vy,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
@@ -23790,7 +23843,7 @@ HpxImageSurvey = (function() {
                 0+delta, textureSize-delta,
                 alpha,
                 dx, dy, applyCorrection, norder);
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
                 cornersXYView[2].vx, cornersXYView[2].vy,
@@ -23801,7 +23854,7 @@ HpxImageSurvey = (function() {
                 dx, dy, applyCorrection, norder);
     };
  
-    function drawTexturedTriangle2(blend, hue, ctx, bCtx, img, x0, y0, x1, y1, x2, y2,
+    function drawTexturedTriangle2(blend, hue, index, ctx, img, x0, y0, x1, y1, x2, y2,
                                         u0, v0, u1, v1, u2, v2, alpha,
                                         dx, dy, applyCorrection, norder) {
 
@@ -23824,11 +23877,11 @@ HpxImageSurvey = (function() {
         var yc = (y0 + y1 + y2) / 3;
 
         ctx.save();
-        bCtx.save();
+        // bCtx.save();
         
         if (alpha) {
             ctx.globalAlpha = alpha;
-            bCtx.globalAlpha = alpha;
+            // bCtx.globalAlpha = alpha;
         }
         
 /*
@@ -23876,7 +23929,7 @@ coeff = 0.02;
              (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         );
         
-        if (hue != '#000') { // Drawing an overlay image
+        if (index > 0) { // Drawing an overlay image
         // bCtx.transform(
         //     -(v0 * (x2 - x1) -  v1 * x2  + v2 *  x1 + (v1 - v2) * x0) * d_inv, // m11
         //     (v1 *  y2 + v0  * (y1 - y2) - v2 *  y1 + (v2 - v1) * y0) * d_inv, // m12
@@ -23886,29 +23939,30 @@ coeff = 0.02;
         //     (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         // );
 
-        // Draw the overlay image onto the blendCanvas 
-        compositeHueToLayer(bCtx, img, hue);
-        
-        // get the blendCanvas
-        var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
+            // Draw the overlay image onto the blendCanvas 
+            // compositeHueToLayer(bCtx, img, hue);
+            ctx.drawImage(img, 0, 0);
+            
+            // get the blendCanvas
+            // var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
 
-        ctx.globalCompositeOperation = blend;
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(overlay, 0, 0);
-        
-        // clear the blendCanvas so it is ready to take another image
-        // bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+            // ctx.globalCompositeOperation = blend;
+            // ctx.globalAlpha = alpha;
+            // ctx.drawImage(overlay, 0, 0);
+            
+            // clear the blendCanvas so it is ready to take another image
+            // bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
 
-        bCtx.fillStyle = "#000";
-        bCtx.globalAlpha = 1.0;
-        bCtx.blendingMode = BlendingModeEnum.multiply;
-        bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
-    } else { // Drawing the base survey (assuming the hue is #000 ???)
+            // bCtx.fillStyle = "#000";
+            // bCtx.globalAlpha = 1.0;
+            // bCtx.blendingMode = BlendingModeEnum.multiply;
+            // bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+    } else { // Drawing the base survey
         ctx.globalCompositeOperation = blend;
         ctx.drawImage(img, 0, 0);
     }
         ctx.restore();
-        bCtx.restore();
+        // bCtx.restore();
     }
 
     function onlyUnique(value, index, self) {
@@ -23918,9 +23972,10 @@ coeff = 0.02;
 // Helper method to create off screen composite of color hue with layer
     function compositeHueToLayer(bCtx, img, hue) {
                 bCtx.drawImage(img, 0, 0);
-                bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
-                bCtx.fillStyle = hue;
-                bCtx.fillRect(0, 0, img.width, img.height);
+                // Adding Hue
+                // bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
+                // bCtx.fillStyle = hue;
+                // bCtx.fillRect(0, 0, img.width, img.height);
             }
             
     // uses affine texture mapping to draw a textured triangle
@@ -25157,26 +25212,26 @@ View = (function() {
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
         if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
-            console.log("Actually I'm being CALLED!!!!");
-                if (this.aladin.reduceDeformations==null) {
-                    imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
-                } else {
-                    imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
-                }
+            if (this.aladin.reduceDeformations==null) {
+                imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
+                console.log("drawing survey at index: "+i);
+                // Try making another function chain for compositing hue here? 
+            } else {
+                imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
+                console.log("drawing survey at index: "+i);
+            }
         }
     }
-        
+        // This block looks very similar to the last but doesn't appear to get called.    
+
         // redraw overlay image survey
         // TODO : does not work if different frames 
         // TODO: use HpxImageSurvey.draw method !!
         if (this.overlayImageSurvey && this.overlayImageSurvey.isReady) {
             imageCtx.globalAlpha = this.overlayImageSurvey.getAlpha();
-
-            console.log("I'm being CALLED!!!!");
-
             if (this.aladin.reduceDeformations==null) {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, !this.dragging, this.curOverlayNorder);
-            }            else {
+            } else {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, this.aladin.reduceDeformations, this.curOverlayNorder);
             }
 

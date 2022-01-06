@@ -471,7 +471,36 @@ HpxImageSurvey = (function() {
             }
 
             if (curOverlayNorder>=3) {
-                this.drawHighres(ctx, bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+                if (index == 0) { // Draw on the image canvas
+                    this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
+                } else {
+                    // Draw to blendCanvas
+                    this.drawHighres(bCtx, cornersXYViewMapHighres, norder4Display, view, index);
+
+                    // Get overlay parameters
+                    const blend = view.imageSurveys[index].blendingMode;
+                    const hue = view.imageSurveys[index].colorCorrection;
+                    const alpha = view.imageSurveys[index].alpha;
+
+                    // Add hue
+                    bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
+                    bCtx.fillStyle = hue;
+                    bCtx.globalAlpha = 1.0; // Or should this be alpha?
+                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+
+                    // Blend with imageCanvas
+                    overlay = bCtx.canvas;
+                    ctx.globalCompositeOperation = blend;
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(overlay, 0, 0);
+
+                    // Clear blend canvas so it is ready for the next overlay
+                    bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+                    // I don't really know why this last step is necessary but
+                    // I get a black screen without it.
+                    bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
+                }
+                
             }
 /*
             else {
@@ -807,8 +836,7 @@ HpxImageSurvey = (function() {
         		alpha,
                 dx, dy, applyCorrection);
     };
-    
-       HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, ctx, bCtx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
+        HpxImageSurvey.prototype.drawOneTile2 = function(blend, hue, index, ctx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection, norder) {
 
         // apply CM
         var newImg = this.useCors ? this.cm.apply(img) : img;
@@ -820,7 +848,7 @@ HpxImageSurvey = (function() {
     //                  && round(b[0].vy - b[2].vy) == round(b[1].vy - b[3].vy); 
 
         var delta = norder<=3 ? (textureSize<100 ? 0.5 : 0.2) : 0;
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[0].vx, cornersXYView[0].vy,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
@@ -829,7 +857,7 @@ HpxImageSurvey = (function() {
                 0+delta, textureSize-delta,
                 alpha,
                 dx, dy, applyCorrection, norder);
-        drawTexturedTriangle2(blend, hue, ctx, bCtx, newImg,
+        drawTexturedTriangle2(blend, hue, index, ctx, newImg,
                 cornersXYView[1].vx, cornersXYView[1].vy,
                 cornersXYView[3].vx, cornersXYView[3].vy,
                 cornersXYView[2].vx, cornersXYView[2].vy,
@@ -840,7 +868,7 @@ HpxImageSurvey = (function() {
                 dx, dy, applyCorrection, norder);
     };
  
-    function drawTexturedTriangle2(blend, hue, ctx, bCtx, img, x0, y0, x1, y1, x2, y2,
+    function drawTexturedTriangle2(blend, hue, index, ctx, img, x0, y0, x1, y1, x2, y2,
                                         u0, v0, u1, v1, u2, v2, alpha,
                                         dx, dy, applyCorrection, norder) {
 
@@ -863,11 +891,11 @@ HpxImageSurvey = (function() {
         var yc = (y0 + y1 + y2) / 3;
 
         ctx.save();
-        bCtx.save();
+        // bCtx.save();
         
         if (alpha) {
             ctx.globalAlpha = alpha;
-            bCtx.globalAlpha = alpha;
+            // bCtx.globalAlpha = alpha;
         }
         
 /*
@@ -915,7 +943,7 @@ coeff = 0.02;
              (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         );
         
-        if (hue != '#000') { // Drawing an overlay image
+        if (index > 0) { // Drawing an overlay image
         // bCtx.transform(
         //     -(v0 * (x2 - x1) -  v1 * x2  + v2 *  x1 + (v1 - v2) * x0) * d_inv, // m11
         //     (v1 *  y2 + v0  * (y1 - y2) - v2 *  y1 + (v2 - v1) * y0) * d_inv, // m12
@@ -926,37 +954,30 @@ coeff = 0.02;
         // );
 
         // Draw the overlay image onto the blendCanvas 
-        compositeHueToLayer(bCtx, img, hue);
+        // compositeHueToLayer(bCtx, img, hue);
         
         // get the blendCanvas
-        var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
+        // var overlay = $(this.document.getElementById('aladin-lite-div')).children()[5];
 
-        ctx.globalCompositeOperation = "lighten";
+        ctx.globalCompositeOperation = blend;
         ctx.globalAlpha = alpha;
         ctx.drawImage(overlay, 0, 0);
         
         // clear the blendCanvas so it is ready to take another image
-        bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+        // bCtx.clearRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
         
     } else { // Drawing the base survey (assuming the hue is #000 ???)
         ctx.globalCompositeOperation = blend;
         ctx.drawImage(img, 0, 0);
     }
         ctx.restore();
-        bCtx.restore();
+        // bCtx.restore();
     }
 
     function onlyUnique(value, index, self) {
       return self.indexOf(value) === index;
     }
-    
-// Helper method to create off screen composite of color hue with layer
-    function compositeHueToLayer(bCtx, img, hue) {
-                bCtx.drawImage(img, 0, 0);
-                        bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
-                bCtx.fillStyle = hue;
-                bCtx.fillRect(0, 0, img.width, img.height);
-            }
+
             
     // uses affine texture mapping to draw a textured triangle
     // at screen coordinates [x0, y0], [x1, y1], [x2, y2] from
@@ -1021,9 +1042,6 @@ coeff = 0.02;
              (u0 * (v2 * y1  -  v1 * y2) + v0 * (u1 *  y2 - u2  * y1) + (u2 * v1 - u1 * v2) * y0) * d_inv  // dy
         );
         ctx.drawImage(img, 0, 0);
-        //ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width, img.height); 
-        
-    //    ctx.globalAlpha = 1.0;
     
         ctx.restore();
     }
