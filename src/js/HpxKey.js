@@ -62,7 +62,7 @@ HpxKey = (function() {
 
     // "static" methods
     HpxKey.createHpxKeyfromAncestor = function(father, childNb) {
-        var hpxKey = new HpxKey(father.norder+1, father.npix*4 + childNb, father.hips, father.width/2, father.height/2,
+        var hpxKey = new HpxKey(father.norder+1, father.npix*4n + BigInt(childNb), father.hips, father.width/2, father.height/2,
                                 childNb==2 || childNb==3 ? father.dx+father.width/2 : father.dx, childNb==1 || childNb==3 ? father.dy+father.height/2 : father.dy, father.allskyTexture, father.allskyTextureSize);
         hpxKey.parente = father.parente + 1;
         hpxKey.ancestor = father.ancestor || father;
@@ -145,7 +145,7 @@ HpxKey = (function() {
 
         drawChildren: function(ctx, bCtx, view, index, maxParente) {
             var n=0;
-            var limitOrder = 13 //13; // corresponds to NSIDE=8192, current HealpixJS limit
+            var limitOrder = 24; // corresponds to NSIDE=8192, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
                 var children = this.getChildren();
                 if ( children!=null ) {

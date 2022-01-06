@@ -1207,7 +1207,7 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        console.log('got npix '+npix);
+        // console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
             for (var ipix=0; ipix<npix; ipix++) {
@@ -1234,7 +1234,6 @@ View = (function() {
                 lonlat = [radec.ra, radec.dec];
             }
             if (this.imageSurveys[0] && this.imageSurveys[0].longitudeReversed===true) {
-                console.log('setting spatial vector');
                 spatialVector.set(lonlat[0], lonlat[1]);
             }
             else {
@@ -1252,9 +1251,9 @@ View = (function() {
                 radius *= 1.1;
             }
 
-            console.log('getting pixlist');
-                        pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-                        console.log(pixList);
+                        pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, function (idxList) {
+                            return idxList;
+                        });
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1275,6 +1274,7 @@ View = (function() {
         var spVec = new SpatialVector();
         var nside = Math.pow(2, norder); // TODO : to be modified
         var npix = HealpixIndex.nside2Npix(nside);
+        // console.log('nside '+nside+' ipix '+npix);
         var ipixCenter = null;
         
         // build list of pixels
@@ -1288,7 +1288,6 @@ View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            // hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);
@@ -1324,8 +1323,10 @@ View = (function() {
             }
             
             
-                
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
+            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, function(idxList) {
+                return idxList;
+            });
+            // console.log('pix list is length '+pixList.length);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1554,11 +1555,10 @@ View = (function() {
      * compute and set the norder corresponding to the current view resolution
      */
     View.prototype.computeNorder = function() {
-                console.log('max order base layer '+this.imageSurveys[0].maxOrder);
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
         var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
-        console.log('nside is '+nside);
+        // console.log('nside is '+nside);
          // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);

@@ -48,7 +48,7 @@ cds.Catalog = (function() {
     	this.indexationNorder = 5; // à quel niveau indexe-t-on les sources
     	this.sources = [];
     	this.hpxIdx = new HealpixIndex(this.indexationNorder);
-    	this.hpxIdx.init();
+        // this.hpxIdx.init();
 
         this.displayLabel = options.displayLabel || false;
         this.labelColor = options.labelColor || this.color;

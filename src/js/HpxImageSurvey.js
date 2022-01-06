@@ -395,7 +395,7 @@ HpxImageSurvey = (function() {
    
     
     HpxImageSurvey.prototype.getTileURL = function(norder, npix) {
-    	var dirIdx = Math.floor(npix/10000)*10000;
+    	var dirIdx = (npix/10000n)*10000n;
     	return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
     };
     
@@ -410,6 +410,8 @@ HpxImageSurvey = (function() {
     	if (this.useCors) {
             img.crossOrigin = 'anonymous';
         }
+
+        const imageWorker = new Worker(blob);
 
         imageWorker.addEventListener('message', event => {
           // Grab the message data from the event
@@ -501,13 +503,14 @@ HpxImageSurvey = (function() {
         var parentTilesMissingIndex = {};
         for (var k=0; k<cornersXYViewMap.length; k++) {
             var ipix = cornersXYViewMap[k].ipix
+
             var tileURL = this.getTileURL(norder, ipix);
             var tile = this.tileBuffer.getTile(tileURL);
             var tileAvailable = tile && Tile.isImageOk(tile.img);
             if (! tileAvailable) { // if tile is not available, search if upper level tiles can be drawn
                 var MAX_UPPER_LEVELS = 4; // we search parent tiles up to 4 levels
                 for (var parentOrder = norder -1 ; parentOrder>=3 && parentOrder >= norder-MAX_UPPER_LEVELS ; parentOrder--) {
-                    var parentIpix = ~~(ipix / Math.pow(4, norder - parentOrder));
+                    var parentIpix = ~~(ipix / BigInt(Math.pow(4, norder - parentOrder)));
                     var key = parentOrder + '-' + parentIpix;
                     if (parentTilesToDrawIndex[key]===true || parentTilesMissingIndex===true) {
                         break;

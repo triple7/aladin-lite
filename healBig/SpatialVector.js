@@ -1,34 +1,38 @@
 SpatialVector = (function() {
     "use stric";
     
-    var SpatialVector = function(t, s, i) {
+    function SpatialVector(t, s, i) {
         if (t) {
         (this.x = t), (this.y = s), (this.z = i), (this.ra_ = 0), (this.dec_ = 0), (this.okRaDec_ = !1);
     }
     };
     
-        var setXYZ = function(t, s, i) {
+        SpatialVector.prototype.setXYZ = function(t, s, i) {
             (this.x = t), (this.y = s), (this.z = i), (this.okRaDec_ = !1);
         };
         
-        var length = function() {
+        SpatialVector.prototype.length = function() {
             return Math.sqrt(this.lengthSquared());
         };
         
-var lengthSquared = function() {
+SpatialVector.prototype.lengthSquared = function() {
             return this.x * this.x + this.y * this.y + this.z * this.z;
         };
         
-var normalized = function() {
+SpatialVector.prototype.normalized = function() {
             var t = this.length();
             (this.x /= t), (this.y /= t), (this.z /= t);
         };
         
-var set = function(t, s) {
-            (this.ra_ = t), (this.dec_ = s), (this.okRaDec_ = !0), this.updateXYZ();
+SpatialVector.prototype.set = function(t, s) {
+    this.ra_ = t;
+    this.dec_ = s;
+    this.okRaDec_ = !0;
+    var t = Math.cos(this.dec_ * Constants.C_PR);
+    (this.x = Math.cos(this.ra_ * Constants.C_PR) * t), (this.y = Math.sin(this.ra_ * Constants.C_PR) * t), (this.z = Math.sin(this.dec_ * Constants.C_PR));
         };
         
-var angle = function(t) {
+SpatialVector.angle = function(t) {
             var s = this.y * t.z - this.z * t.y,
                 i = this.z * t.x - this.x * t.z,
                 n = this.x * t.y - this.y * t.x,
@@ -36,52 +40,52 @@ var angle = function(t) {
             return Math.abs(Math.atan2(a, dot(t)));
         };
         
-var get = function() {
+SpatialVector.get = function() {
             return [x, y, z];
         };
         
-var toString = function() {
+SpatialVector.toString = function() {
             return "SpatialVector[" + this.x + ", " + this.y + ", " + this.z + "]";
         };
         
-var cross = function(s) {
+SpatialVector.cross = function(s) {
             return new SpatialVector(this.y * s.z - s.y * this.z, this.z * s.x - s.z * this.x, this.x * s.y - s.x() * this.y);
         };
         
-var equal = function(t) {
+SpatialVector.equal = function(t) {
             return this.x == t.x && this.y == t.y && this.z == t.z() ? !0 : !1;
         };
         
-var mult = function(s) {
+SpatialVector.mult = function(s) {
             return new SpatialVector(s * this.x, s * this.y, s * this.z);
         };
         
-var dot = function(t) {
+SpatialVector.dot = function(t) {
             return this.x * t.x + this.y * t.y + this.z * t.z;
         };
         
-var add = function(s) {
+SpatialVector.add = function(s) {
             return new SpatialVector(this.x + s.x, this.y + s.y, this.z + s.z);
             ;}
         
-var sub = function(s) {
+SpatialVector.sub = function(s) {
             return new SpatialVector(this.x - s.x, this.y - s.y, this.z - s.z);
         };
         
-var dec = function() {
+SpatialVector.prototype.dec = function() {
             return this.okRaDec_ || (this.normalized(), this.updateRaDec()), this.dec_;
         };
         
-var ra = function() {
+SpatialVector.prototype.ra = function() {
             return this.okRaDec_ || (this.normalized(), this.updateRaDec()), this.ra_;
             ;}
         
-var updateXYZ = function() {
+SpatialVector.updateXYZ = function() {
             var t = Math.cos(this.dec_ * Constants.C_PR);
             (this.x = Math.cos(this.ra_ * Constants.C_PR) * t), (this.y = Math.sin(this.ra_ * Constants.C_PR) * t), (this.z = Math.sin(this.dec_ * Constants.C_PR));
         };
         
-var updateRaDec = function() {
+SpatialVector.prototype.updateRaDec = function() {
             this.dec_ = Math.asin(this.z) / Constants.C_PR;
             var t = Math.cos(this.dec_ * Constants.C_PR);
             (this.ra_ =
@@ -97,12 +101,27 @@ var updateRaDec = function() {
                 (this.okRaDec_ = !0);
         };
         
-var toRaRadians = function() {
+        var updateRaDec = function() {
+                    this.dec_ = Math.asin(this.z) / Constants.C_PR;
+                    var t = Math.cos(this.dec_ * Constants.C_PR);
+                    (this.ra_ =
+                        t > Constants.EPS || -Constants.EPS > t
+                            ? this.y > Constants.EPS || this.y < -Constants.EPS
+                                ? 0 > this.y
+                                    ? 360 - Math.acos(this.x / t) / Constants.C_PR
+                                    : Math.acos(this.x / t) / Constants.C_PR
+                                : 0 > this.x
+                                ? 180
+                                : 0
+                            : 0),
+                        (this.okRaDec_ = !0);
+                };
+SpatialVector.prototype.toRaRadians = function() {
             var t = 0;
             return (0 != this.x || 0 != this.y) && (t = Math.atan2(this.y, this.x)), 0 > t && (t += 2 * Math.PI), t;
         };
         
-var toDeRadians = function() {
+SpatialVector.toDeRadians = function() {
             var t = z / this.length(),
                 s = Math.acos(t);
             return Math.PI / 2 - s;
@@ -110,3 +129,5 @@ var toDeRadians = function() {
  
         return SpatialVector;       
 })();
+var v = new SpatialVector(1, 0, 0);
+v.set(0.35, 1.22);

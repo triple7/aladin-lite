@@ -86,6 +86,7 @@ Downloader = (function() {
 		this.nbDownloads++;
 		var downloaderRef = this;
         
+                const imageWorker = new Worker(blob);
         imageWorker.addEventListener('message', event => {
           // Grab the message data from the event
           const imageData = event.data
