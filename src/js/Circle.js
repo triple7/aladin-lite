@@ -30,6 +30,7 @@
 
 // TODO : Circle and Footprint should inherit from the same root object
 Circle = (function() {
+
     // constructor
     Circle = function(centerRaDec, radiusDegrees, options) {
         options = options || {};

@@ -30,7 +30,6 @@
 
 ColorMap = (function() {
     
-    
     // constructor
     ColorMap = function(view) {
         this.view = view;

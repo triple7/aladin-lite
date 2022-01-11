@@ -28,7 +28,7 @@
  * 
  *****************************************************************************/
 
-Location = (function() {
+ Location = (function() {
     // constructor
     Location = function(locationDiv) {
     		this.$div = $(locationDiv);
@@ -52,4 +52,3 @@ Location = (function() {
 	
 	return Location;
 })();
-	

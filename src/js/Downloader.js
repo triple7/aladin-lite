@@ -28,6 +28,7 @@
  *****************************************************************************/
 
 Downloader = (function() {
+
 	var NB_MAX_SIMULTANEOUS_DL = 8;
 	// TODO : le fading ne marche pas bien actuellement
 	var FADING_ENABLED = false;

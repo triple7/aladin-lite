@@ -21,6 +21,7 @@
 
 CooConversion = (function() {
 
+
     var CooConversion = {};
     
     CooConversion.GALACTIC_TO_J2000 = [

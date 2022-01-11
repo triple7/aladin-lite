@@ -28,7 +28,7 @@
  * 
  *****************************************************************************/
 
-HealpixGrid = (function() {
+ HealpixGrid = (function() {
 	var HealpixGrid = function() {
 	};
 	

@@ -29,7 +29,7 @@
  * 
  *****************************************************************************/
 
-HpxKey = (function() {
+ HpxKey = (function() {
 
     "use strict";
 
@@ -87,6 +87,7 @@ HpxKey = (function() {
 
             var now = new Date().getTime();
             var updateNeededTiles = this.ancestor==null && this.norder>=3 && (now-this.hips.lastUpdateDateNeededTiles) > 0.1;
+
             try {
                 if (isTooLarge(corners)) {
 // console.log('too large');
@@ -99,7 +100,7 @@ HpxKey = (function() {
                 }
             }
             catch(e) {
-                // console.log('error '+e);
+                console.log('error '+e);
                 return 0;
             }
 
@@ -112,8 +113,8 @@ HpxKey = (function() {
             //corners = AladinUtils.grow2(corners, 1); // grow by 1 pixel in each direction
             //console.log(corners);
             var url = this.hips.getTileURL(norder, npix);
-            console.log('url is '+url);
             var tile = this.hips.tileBuffer.getTile(url);
+            
             if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
                 if (!this.allskyTexture && !this.hips.tileSize) {
                     this.hips.tileSize = tile.img.width;
@@ -127,8 +128,8 @@ HpxKey = (function() {
                 const blend = view.imageSurveys[index].blendingMode;
                 const hue = view.imageSurveys[index].colorCorrection;
                 const alpha = view.imageSurveys[index].alpha;
-
-                this.hips.drawOneTile2(blend, hue, ctx, img, corners, w, alpha, this.dx, this.dy, true, norder);
+                
+                this.hips.drawOneTile2(blend, hue, index, ctx, img, corners, w, alpha, this.dx, this.dy, true, norder);
                 n += 2;
             }
             else if (updateNeededTiles && ! tile) {
@@ -151,6 +152,9 @@ HpxKey = (function() {
                     for ( var i=0; i<4; i++ ) {
 //console.log(i);
                         if ( children[i]!=null ) {
+                            // Isn't each element a HpxKey?
+                            // Then HpxKey.draw() only takes 3 arguments
+                            // What is maxParente doing???
                             n += children[i].draw(ctx, view, index, maxParente);
                         }
                     }
@@ -267,5 +271,3 @@ HpxKey = (function() {
     return HpxKey;
 
 })();
-
-

@@ -31,6 +31,7 @@
 
 // TODO : harmoniser parsing avec classe ProgressiveCat
 cds.Catalog = (function() {
+
    cds.Catalog = function(options) {
         options = options || {};
 

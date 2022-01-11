@@ -26,7 +26,7 @@
  * 
  *****************************************************************************/
 
-View = (function() {
+ View = (function() {
 
     /** Constructor */
     function View (aladin, location, fovDiv, cooFrame, zoom) {
@@ -35,7 +35,7 @@ View = (function() {
             this.aladinDiv = this.aladin.aladinDiv;
             this.popup = new Popup(this.aladinDiv, this);
 
-            // new: aladindded multi image survey 
+            // new: added multi image survey 
             this.imageSurveys = [];
             this.createCanvases();
             this.location = location;
@@ -985,25 +985,25 @@ View = (function() {
         // Added going through all image surveys with the same routine
         var blendCtx = this.clearBlendCanvas();        
         for (const [i, imageSurvey] of this.imageSurveys.entries()) {
-            if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
-                if (this.aladin.reduceDeformations==null) {
-
-                    imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
-                }                else {
-                    imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
-                }
+        if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
+            if (this.aladin.reduceDeformations==null) {
+                imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
+                // Try making another function chain for compositing hue here? 
+            } else {
+                imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
             }
         }
-        
+    }
+        // This block looks very similar to the last but doesn't appear to get called.    
+
         // redraw overlay image survey
         // TODO : does not work if different frames 
         // TODO: use HpxImageSurvey.draw method !!
         if (this.overlayImageSurvey && this.overlayImageSurvey.isReady) {
             imageCtx.globalAlpha = this.overlayImageSurvey.getAlpha();
-
             if (this.aladin.reduceDeformations==null) {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, !this.dragging, this.curOverlayNorder);
-            }            else {
+            } else {
                 this.overlayImageSurvey.draw(imageCtx, blendCtx, this, -1, this.aladin.reduceDeformations, this.curOverlayNorder);
             }
 
@@ -1207,7 +1207,6 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
             for (var ipix=0; ipix<npix; ipix++) {
@@ -1216,7 +1215,7 @@ View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            // hpxIdx.init();
+            hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);
@@ -1234,7 +1233,6 @@ View = (function() {
                 lonlat = [radec.ra, radec.dec];
             }
             if (this.imageSurveys[0] && this.imageSurveys[0].longitudeReversed===true) {
-                console.log('setting spatial vector');
                 spatialVector.set(lonlat[0], lonlat[1]);
             }
             else {
@@ -1252,10 +1250,9 @@ View = (function() {
                 radius *= 1.1;
             }
 
-            console.log('getting pixlist');
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-            console.log("pix list has lenght"+pixList.length);
 
+
+            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1289,7 +1286,7 @@ View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            // hpxIdx.init();
+            hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);
@@ -1327,8 +1324,6 @@ View = (function() {
             
                 
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
-            console.log("pix list has lenght"+pixList.length);
-
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1730,14 +1725,14 @@ View = (function() {
                 newImageSurvey = HpxImageSurvey.getSurveyFromId(HpxImageSurvey.DEFAULT_SURVEY_ID, blendingMode, hue, alpha);
                 unknownSurveyId = imageSurvey;
             }
-        }        else {
+        } else {
             newImageSurvey = imageSurvey;
         }
  
         /* Feature: added filter of remaining urls in download queue to be used to selectively remove tiles        
         */
         
-                var remaining = this.downloader.emptyQueue();
+        var remaining = this.downloader.emptyQueue();
         for (buffer of this.tileBuffers) {
             buffer.removeTiles(remaining);
         }
@@ -1881,10 +1876,10 @@ View = (function() {
         this.requestRedraw();
     };
 
-    View.prototype.setSurveyParametersAtIndex = function(index, blendMode, alpha, hue) {
-        this.imageSurveys[index].blendMode = blendMode;
-                        this.imageSurveys[index].alpha = alpha;
-                        this.imageSurveys[index].colorCorrection = hue;
+    View.prototype.setSurveyParametersAtIndex = function(index, blendMode, hue, alpha) {
+        this.imageSurveys[index].blendingMode = blendMode;
+        this.imageSurveys[index].alpha = alpha;
+        this.imageSurveys[index].colorCorrection = hue;
         this.requestRedraw();
     };
     
