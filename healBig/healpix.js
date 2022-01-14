@@ -41,7 +41,6 @@ HealpixIndex.vec2pix_ring = function(nside, v) {
     };
 
 HealpixIndex.prototype.ang2pix_nest = function(theta, phi) {
-    // console.log('theta '+theta);
         const z = Math.cos(theta);
         return HealpixIndex.za2pix_nest(this.Nside, z, phi);
     };
@@ -175,10 +174,19 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
             });
     };
 
-    HealpixIndex.prototype.queryDisc = function(v, radius, cb) {
+    HealpixIndex.prototype.queryDisc = function(v, radius) {
         var output = [];
+        for (var ipix of HealpixIndex.queryDisc_cb(v, radius)) {
+            output.push(ipix);
+        }
+        return output;
+    };
+    
+    function queryDisc_cb(v, radius, cb) {
         var nside = this.Nside;
+        console.log(nside);
         if (radius >PI_2) {
+                    console.log('radius ' +radius+' in nside '+this.Nside);
             throw new Error(`query_disc: radius must <PI/2`);
         }
         const pixrad = HealpixIndex.max_pixrad(nside);
@@ -219,9 +227,8 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
         for (let i = i1; i <= i2; ++i)
             HealpixIndex.walk_ring_around(nside, i, a0, theta, radius +pixrad, function(ipix) {
                 if (HealpixIndex.angle(HealpixIndex.pix2vec_nest(nside, ipix), v) <= radius +pixrad)
-                    output.push(ipix);
+                    cb(ipix);
             });
-            return output;
     };
     
 HealpixIndex.query_disc_inclusive_ring = function(nside, v, radius, cb_ring) {

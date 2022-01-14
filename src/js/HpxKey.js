@@ -113,7 +113,7 @@ HpxKey = (function() {
             //corners = AladinUtils.grow2(corners, 1); // grow by 1 pixel in each direction
             //console.log(corners);
             var url = this.hips.getTileURL(norder, npix);
-            console.log('url is '+url);
+            // console.log('url is '+url);
             var tile = this.hips.tileBuffer.getTile(url);
             if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
                 if (!this.allskyTexture && !this.hips.tileSize) {

@@ -2,7 +2,7 @@ SpatialVector = (function() {
     "use stric";
     
     function SpatialVector(t, s, i) {
-        if (t) {
+        if (t != null) {
         (this.x = t), (this.y = s), (this.z = i), (this.ra_ = 0), (this.dec_ = 0), (this.okRaDec_ = !1);
     }
     };

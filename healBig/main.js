@@ -1,1 +1,0 @@
-var HealpixIndex = require('./healpix');
