@@ -51,7 +51,7 @@ HealpixCache = (function() {
     	// pre-compute corners position for nside=8
     	var hpxIdx = new HealpixIndex(8);
     	var npix = HealpixIndex.nside2Npix(8);
-        console.log('got generated npix '+npix);
+        // console.log('got generated npix '+npix);
         var corners;
     	for (var ipix=0; ipix<npix; ipix++) {
             corners = hpxIdx.corners_nest(ipix, 1);

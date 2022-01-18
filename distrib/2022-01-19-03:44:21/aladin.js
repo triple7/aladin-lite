@@ -1125,20 +1125,19 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
             });
     };
 
-    HealpixIndex.prototype.queryDisc = function(v, radius) {
+    HealpixIndex.prototype.queryDisc = function(nside, v, radius) {
         var output = [];
-        for (var ipix of HealpixIndex.queryDisc_cb(v, radius)) {
-            output.push(ipix);
-        }
+var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
+    output.push(ipix);
+        });
         return output;
     };
     
-    function queryDisc_cb(v, radius, cb) {
-        var nside = this.Nside;
-        console.log(nside);
+    HealpixIndex.queryDisc_cb = function(nside, v, radius, cb) {
         if (radius >PI_2) {
-                    console.log('radius ' +radius+' in nside '+this.Nside);
-            throw new Error(`query_disc: radius must <PI/2`);
+                    // console.log('radius ' +radius+' in nside '+nside);
+            // throw new Error(`query_disc: radius must <PI/2`);
+            return;
         }
         const pixrad = HealpixIndex.max_pixrad(nside);
         const d =PI_4 / nside;
@@ -3368,7 +3367,7 @@ HealpixCache = (function() {
     	// pre-compute corners position for nside=8
     	var hpxIdx = new HealpixIndex(8);
     	var npix = HealpixIndex.nside2Npix(8);
-        console.log('got generated npix '+npix);
+        // console.log('got generated npix '+npix);
         var corners;
     	for (var ipix=0; ipix<npix; ipix++) {
             corners = hpxIdx.corners_nest(ipix, 1);
@@ -5019,6 +5018,7 @@ Downloader = (function() {
     });
     
     const imageURL = next.url;
+            console.log('image URL'+imageURL);
     imageWorker.postMessage(imageURL);
 };
 	
@@ -10677,6 +10677,7 @@ HpxImageSurvey = (function() {
     
     HpxImageSurvey.prototype.getTileURL = function(norder, npix) {
     	var dirIdx = (npix/10000n)*10000n;
+        // console.log("/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : ''));
     	return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
     };
     
@@ -10715,6 +10716,7 @@ HpxImageSurvey = (function() {
     });
     
         const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+        console.log('image URL'+imageURL);
         imageWorker.postMessage(imageURL);
     
     };
@@ -12697,7 +12699,7 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        console.log('got npix '+npix);
+        // console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
             for (var ipix=0; ipix<npix; ipix++) {
@@ -12741,8 +12743,7 @@ View = (function() {
                 radius *= 1.1;
             }
 
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-                                                            console.log('pix list is length '+pixList.length);
+            pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -12814,13 +12815,12 @@ View = (function() {
             
             
             if ((radius*Math.PI/180.0) > PI_2) {
-                        console.log('nside '+nside+' ipix '+npix);
-                            console.log('fov '+this.fov+' ratio '+this.ratio);
-            console.log('radius with fov '+radius);                            
+                        // console.log('nside '+nside+' ipix '+npix);
+                            // console.log('fov '+this.fov+' ratio '+this.ratio);
+            // console.log('radius with fov '+radius);
             }
 
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-            console.log('pix list is length '+pixList.length);
+            pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);

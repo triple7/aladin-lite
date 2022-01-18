@@ -1207,7 +1207,7 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        console.log('got npix '+npix);
+        // console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
             for (var ipix=0; ipix<npix; ipix++) {
@@ -1251,8 +1251,7 @@ View = (function() {
                 radius *= 1.1;
             }
 
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-                                                            console.log('pix list is length '+pixList.length);
+            pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1324,13 +1323,12 @@ View = (function() {
             
             
             if ((radius*Math.PI/180.0) > PI_2) {
-                        console.log('nside '+nside+' ipix '+npix);
-                            console.log('fov '+this.fov+' ratio '+this.ratio);
-            console.log('radius with fov '+radius);                            
+                        // console.log('nside '+nside+' ipix '+npix);
+                            // console.log('fov '+this.fov+' ratio '+this.ratio);
+            // console.log('radius with fov '+radius);
             }
 
-            pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0);
-            console.log('pix list is length '+pixList.length);
+            pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);

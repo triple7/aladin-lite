@@ -396,6 +396,7 @@ HpxImageSurvey = (function() {
     
     HpxImageSurvey.prototype.getTileURL = function(norder, npix) {
     	var dirIdx = (npix/10000n)*10000n;
+        // console.log("/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : ''));
     	return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
     };
     
@@ -434,6 +435,7 @@ HpxImageSurvey = (function() {
     });
     
         const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+        console.log('image URL'+imageURL);
         imageWorker.postMessage(imageURL);
     
     };

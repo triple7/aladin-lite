@@ -174,20 +174,19 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
             });
     };
 
-    HealpixIndex.prototype.queryDisc = function(v, radius) {
+    HealpixIndex.prototype.queryDisc = function(nside, v, radius) {
         var output = [];
-        for (var ipix of HealpixIndex.queryDisc_cb(v, radius)) {
-            output.push(ipix);
-        }
+var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
+    output.push(ipix);
+        });
         return output;
     };
     
-    function queryDisc_cb(v, radius, cb) {
-        var nside = this.Nside;
-        console.log(nside);
+    HealpixIndex.queryDisc_cb = function(nside, v, radius, cb) {
         if (radius >PI_2) {
-                    console.log('radius ' +radius+' in nside '+this.Nside);
-            throw new Error(`query_disc: radius must <PI/2`);
+                    // console.log('radius ' +radius+' in nside '+nside);
+            // throw new Error(`query_disc: radius must <PI/2`);
+            return;
         }
         const pixrad = HealpixIndex.max_pixrad(nside);
         const d =PI_4 / nside;

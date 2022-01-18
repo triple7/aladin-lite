@@ -112,6 +112,7 @@ Downloader = (function() {
     });
     
     const imageURL = next.url;
+            console.log('image URL'+imageURL);
     imageWorker.postMessage(imageURL);
 };
 	
