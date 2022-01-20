@@ -2205,7 +2205,9 @@ Downloader = (function() {
         
 		this.view = view; // reference to the view to be able to request redraw
 		this.nbDownloads = 0; // number of current downloads
-
+    // each element represents the no. of tiles left to download for the
+    // respective layer. When it reaches 0 the image is fully downloaded.
+    this.tilesToDownload = [];
 	};
 
 	Downloader.prototype.emptyQueue = function() {
@@ -2215,17 +2217,33 @@ Downloader = (function() {
             remaining.push(url);
         }
         this.urlsInQueue = {};
+        for (var k=0; k<this.tilesToDownload.length; k++) {
+          this.tilesToDownload[k] = -1;
+        }
         return remaining;
     };
+
+  Downloader.prototype.addTilesToDownloadAtIndex = function(index, num) {
+    if (!this.tilesToDownload[index] || this.tilesToDownload[index] < 0) {
+      this.tilesToDownload[index] = num;
+    } else {
+      this.tilesToDownload[index] += num;
+    }
+  }
 	
-	Downloader.prototype.requestDownload = function(img, url, cors) {
+	Downloader.prototype.requestDownload = function(index, img, url, cors) {
         // first check if url already in queue
         if (url in this.urlsInQueue)  {
-            return;
+          this.tilesToDownload[index] -= 1;
+          return;
         }
 		// put in queue
-		this.dlQueue.push({img: img, url: url, cors: cors});
-		this.urlsInQueue[url] = 1;
+		this.dlQueue.push({img: img, index: index, url: url, cors: cors});
+    if (!this.urlsInQueue[url]) {
+      this.urlsInQueue[url] = 1;
+    } else {
+      this.urlsInQueue[url] += 1;
+    }
 		
 		this.tryDownload();
 	};
@@ -2247,12 +2265,14 @@ Downloader = (function() {
 
 		this.nbDownloads++;
 		var downloaderRef = this;
+
+    // Check if layer has finished downloading
 		next.img.onload = function() {
-			downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
+			downloaderRef.completeDownload(this, next.index, true); // in this context, 'this' is the Image
 		};
 			
 		next.img.onerror = function(e) {
-			downloaderRef.completeDownload(this, false); // in this context, 'this' is the Image
+			downloaderRef.completeDownload(this, next.index, false); // in this context, 'this' is the Image
 		};
 		if (next.cors) {
 		    next.img.crossOrigin = 'anonymous';
@@ -2268,11 +2288,12 @@ Downloader = (function() {
 		next.img.src = next.url;
 	};
 	
-	Downloader.prototype.completeDownload = function(img, success) {
-        delete this.urlsInQueue[img.src];
+	Downloader.prototype.completeDownload = function(img, index, success) {
+    delete this.urlsInQueue[img.src];
 		img.onerror = null;
 		img.onload = null;
 		this.nbDownloads--;
+    this.tilesToDownload[index]--;
 		if (success) {
 			if (FADING_ENABLED) {
 				var now = new Date().getTime();

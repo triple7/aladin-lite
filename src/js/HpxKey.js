@@ -134,7 +134,8 @@
             }
             else if (updateNeededTiles && ! tile) {
                 tile = this.hips.tileBuffer.addTile(url);
-                view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
+                view.downloader.addTilesToDownloadAtIndex(index, 1);
+                view.downloader.requestDownload(index, tile.img, tile.url, this.hips.useCors);
                 this.hips.lastUpdateDateNeededTiles = now;
                 view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
             }

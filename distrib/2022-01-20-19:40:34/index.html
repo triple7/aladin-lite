@@ -37,10 +37,10 @@ Viewport</title>
                 aladin.setBaseImageLayer(hipsID, index, "sourceover", "#000", 1.0); // Should this be "source-over"?
             }
             
-                                // Add a new overlay image
-                                function addSurveylayer(ID, index, blendingMode, hue, alpha) {
-                                        aladin.setImageSurvey(ID, index, blendingMode, hue, alpha);
-                                }
+            // Add a new overlay image
+            function addSurveylayer(ID, index, blendingMode, hue, alpha) {
+                aladin.setImageSurvey(ID, index, blendingMode, hue, alpha);
+            }
             
             // Adding a non image survey layer
                             function setOverlayImageLayer(hipsID, alpha, index) {
@@ -83,37 +83,38 @@ Viewport</title>
         aladin.gotoObject(objectName, {success: function() { 
             console.log('success in getting object');
             sendImage();
-window.webkit.messageHandlers.go_to_object.postMessage({
-"msg" : objectName+" found",
-    "result" : "true"
-            });
+        window.webkit.messageHandlers.go_to_object.postMessage({
+        "msg" : objectName+" found",
+            "result" : "true"
+                    });
             // addCatalog(objectName);
         }, 
         error: function() {
-window.webkit.messageHandlers.go_to_object.postMessage({
-"msg" : "cannot resolve object "+objectname,
-    "result" : "false"
-            });
-}
+        window.webkit.messageHandlers.go_to_object.postMessage({
+        "msg" : "cannot resolve object "+objectname,
+            "result" : "false"
+                    });
+        }
         });
         }
 
         function updateImage() {
                         setTimeout( function() {
                             const image = getImage();
-window.webkit.messageHandlers.update_image.postMessage({
-"image" : image,
-    "index": imageIndex
-            });
+// window.webkit.messageHandlers.update_image.postMessage({
+// "image" : image,
+//     "index": imageIndex
+//             });
     }, 3000);
 }
         
-function updateImageAtIndex(index) {
-                            const image = getImage();
-window.webkit.messageHandlers.update_image.postMessage({
-"image" : image,
-    "index": index
-            });
+function updateImageAtIndex(index, ctx) {
+let img = ctx.canvas.toDataURL('image/jpeg');
+console.log(img);
+// window.webkit.messageHandlers.update_image.postMessage({
+// "image" : img,
+//     "index": index
+//             });
 }
 
         function getImage() {
@@ -158,23 +159,23 @@ window.webkit.messageHandlers.update_image.postMessage({
             }
         };
 
+        function testFunc() {
+            console.log("TESTING");
+        };
 
-console.log("Hello Tariq!");
+addSurveylayer("P/allWISE/color", 1, "source-over", "#fff", 1.0);
 
-var trialSurvey = aladin.createImageSurvey(
-    "P/allWISE/W2",
-    "allWISE W2",
-    "http://alasky.u-strasbg.fr/AllWISE/W2",
-    'equatorial',
-    8,
-    {imgFormat: "jpg"}
-);
 // Testing an overlay survey image        
-setTimeout( function() {
-    addSurveylayer("P/allWISE/W2", 1, "lighten", "#ff0000", 1.0);
-        // addSurveylayer("P/HST/V", 2, "source-over", "#00f", 1.0);
-            // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f", 1.0);
-}, 3000);
+// setTimeout( function() {
+//     // addSurveylayer("P/allWISE/W2", 1, "lighten", "#ff0000", 1.0);
+//         // addSurveylayer("P/HST/V", 2, "source-over", "#00f", 1.0);
+//             // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f", 1.0);
+// }, 3000);
+
+setTimeout(function() {
+    aladin.gotoObject("andromeda");
+    aladin.adjustFovForObject("andromeda");
+}, 5000);
 
 // Various observers
         

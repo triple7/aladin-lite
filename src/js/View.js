@@ -821,7 +821,6 @@
         // initial draw
         view.fov = computeFov(view);
         updateFovDiv(view);
-        
         view.redraw();
     };
 
@@ -916,6 +915,7 @@
      * redraw the whole view
      */
     View.prototype.redraw = function() {
+        // console.log("calling REDRAW");
         var saveNeedRedraw = this.needRedraw;
         requestAnimFrame(this.redraw.bind(this));
 
@@ -988,10 +988,9 @@
         if (imageSurvey && imageSurvey.isReady && this.displaySurvey[i]) {
             if (this.aladin.reduceDeformations==null) {
                 imageSurvey.draw(imageCtx, blendCtx, this, i, !this.dragging, this.curNorder);
-                // Try making another function chain for compositing hue here? 
             } else {
                 imageSurvey.draw(imageCtx, blendCtx, this, i, this.aladin.reduceDeformations, this.curNorder);
-            }
+        }
         }
     }
         // This block looks very similar to the last but doesn't appear to get called.    

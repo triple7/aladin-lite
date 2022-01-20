@@ -397,6 +397,7 @@
     
     HpxImageSurvey.prototype.getTileURL = function(norder, npix) {
     	var dirIdx = Math.floor(npix/10000)*10000;
+        // console.log(this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : ''));
     	return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
     };
     
@@ -426,7 +427,7 @@
     			}
     		}
             */
-    		self.view.requestRedraw(); // Doesn't this also appear in the callback during HpxImageSurver.init(view, callback)
+    		// self.view.requestRedraw(); // Doesn't this also appear in the callback during HpxImageSurver.init(view, callback)
     	};
     	img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
     
@@ -469,10 +470,19 @@
             if (curOverlayNorder>=3) {
                 if (index == 0) {
                     this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
+                    if (this.view.downloader.tilesToDownload[index] == 0) {
+                        updateImageAtIndex(index, ctx);
+                        this.view.downloader.tilesToDownload[index] = -1;
+                    }
                 } else {
                     // Draw to blendCanvas
                     this.drawHighres(bCtx, cornersXYViewMapHighres, norder4Display, view, index);
 
+                    if (this.view.downloader.tilesToDownload[index] == 0) {
+                        // Send image to App
+                        updateImageAtIndex(index, bCtx);
+                        this.view.downloader.tilesToDownload[index] = -1;
+                    }
                     // Get overlay parameters
                     const blend = view.imageSurveys[index].blendingMode;
                     const hue = view.imageSurveys[index].colorCorrection;
@@ -511,7 +521,7 @@
         // TODO : a t on besoin de dessiner le allsky si norder>=3 ?
         // TODO refactoring : devrait être une méthode de HpxImageSurvey
         if (view.curNorder>=3) {
-            this.redrawHighres(blend, hue, ctx, bCtx, cornersXYViewMapHighres, view.curNorder);
+            this.redrawHighres(blend, hue, ctx, bCtx, cornersXYViewMapHighres, view.curNorder, index);
         }
         else {
             this.redrawAllsky(blend, hue, ctx, bCtx, cornersXYViewMapAllsky, view.fov, view.curNorder);
@@ -558,15 +568,19 @@
         });
 
         var tSize = this.tileSize || 512;
+
+        var len = parentTilesToDraw.length;
         // draw parent tiles
-        for (var k=0; k<parentTilesToDraw.length; k++) {
+        for (var k=0; k<len; k++) {
             var t = parentTilesToDraw[k];
             new HpxKey(t.order, t.ipix, this, tSize, tSize).draw(ctx, view, index);
         }
 
+        len = cornersXYViewMap.length;
+
         // TODO : we could have a pool of HpxKey to prevent object re-creation at each frame
         // draw tiles
-        for (var k=0; k<cornersXYViewMap.length; k++) {
+        for (var k=0; k<len; k++) {
             new HpxKey(norder, cornersXYViewMap[k].ipix, this, tSize, tSize).draw(ctx, view, index);
         }
     };
@@ -585,7 +599,8 @@
     	var cornersXYView;
         var ipix;
         var dx, dy;
-        for (var k=0; k<cornersXYViewMap.length; k++) {
+        var len = cornersXYViewMap.length;
+        for (var k=0; k<len; k++) {
     		cornersXYView = cornersXYViewMap[k];
     		ipix = cornersXYView.ipix;
             dy = this.allskyTextureSize * Math.floor(ipix/27);
@@ -593,7 +608,7 @@
             hpxKeys.push(new HpxKey(3, cornersXYViewMap[k].ipix, this, this.allskyTextureSize, this.allskyTextureSize, dx, dy, this.allskyTexture, this.allskyTextureSize));
         }
 
-        for (var k=0; k<hpxKeys.length; k++) {
+        for (var k=0; k<len; k++) {
             hpxKeys[k].draw(ctx, view, index);
         }
     };
@@ -651,7 +666,7 @@
     
     var drawEven = true;
     // TODO: avoir un mode où on ne cherche pas à dessiner d'abord les tuiles parentes (pour génération vignettes côté serveur)
-    HpxImageSurvey.prototype.redrawHighres = function(blend, hue, ctx, bCtx, cornersXYViewMap, norder) {
+    HpxImageSurvey.prototype.redrawHighres = function(blend, hue, ctx, bCtx, cornersXYViewMap, norder, index) {
         
         // DOES THAT FIX THE PROBLEM ???
         if (cornersXYViewMap.length==0) {
@@ -782,13 +797,17 @@
 
         // demande de chargement des tuiles manquantes et mise à jour lastUpdateDateNeededTiles
         if (updateNeededTiles) {
+            var len = tilesToDownload.length;
+            this.view.downloader.addTilesToDownloadAtIndex(index, len);
             // demande de chargement des tuiles
-            for (var k=0, len = tilesToDownload.length; k<len; k++) {
-                this.view.downloader.requestDownload(tilesToDownload[k].img, tilesToDownload[k].url, this.useCors);
+            for (var k=0; k<len; k++) {
+                this.view.downloader.requestDownload(index, tilesToDownload[k].img, tilesToDownload[k].url, this.useCors);
             }
+            len = parentTilesToDownload.length;
+            this.view.addTilesToDownloadAtIndex(index, len);
             //demande de chargement des tuiles parentes
-            for (var k=0, len = parentTilesToDownload.length; k<len; k++) {
-                this.view.downloader.requestDownload(parentTilesToDownload[k].img, parentTilesToDownload[k].url, this.useCors);
+            for (var k=0; k<len; k++) {
+                this.view.downloader.requestDownload(index, parentTilesToDownload[k].img, parentTilesToDownload[k].url, this.useCors);
             }
             this.lastUpdateDateNeededTiles = now;
         }
