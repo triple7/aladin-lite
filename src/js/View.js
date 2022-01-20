@@ -1207,12 +1207,11 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        // console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
-            for (var ipix=0; ipix<npix; ipix++) {
-                pixList.push(ipix);
-            }
+            // for (var ipix=0; ipix<npix; ipix++) {
+            //     pixList.push(ipix);
+            // }
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
@@ -1320,15 +1319,12 @@ View = (function() {
             else {
                 radius *= 1.1;
             }
-            
-            
-            if ((radius*Math.PI/180.0) > PI_2) {
-                        // console.log('nside '+nside+' ipix '+npix);
-                            // console.log('fov '+this.fov+' ratio '+this.ratio);
-            // console.log('radius with fov '+radius);
-            }
 
             pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
+            for (const i of pixList) {
+                console.log(i);
+            }
+            
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -1560,7 +1556,7 @@ View = (function() {
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
         var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
-        // console.log('nside is '+nside);
+        console.log('nside is '+nside);
          // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);

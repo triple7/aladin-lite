@@ -175,6 +175,7 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
     };
 
     HealpixIndex.prototype.queryDisc = function(nside, v, radius) {
+        console.log('[', nside, ',', v.x, ',',  v.y, ',', v.z, ',', radius, ']');
         var output = [];
 var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     output.push(ipix);
@@ -185,7 +186,7 @@ var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     HealpixIndex.queryDisc_cb = function(nside, v, radius, cb) {
         if (radius >PI_2) {
                     // console.log('radius ' +radius+' in nside '+nside);
-            // throw new Error(`query_disc: radius must <PI/2`);
+            throw new Error(`query_disc: radius must <PI/2`);
             return;
         }
         const pixrad = HealpixIndex.max_pixrad(nside);

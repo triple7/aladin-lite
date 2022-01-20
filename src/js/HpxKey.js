@@ -67,7 +67,7 @@ HpxKey = (function() {
         hpxKey.parente = father.parente + 1;
         hpxKey.ancestor = father.ancestor || father;
 
-
+        // console.log('hpx child '+ hpxKey.norder+' '+hpxKey.npix);
         return hpxKey;
     };
 
@@ -134,6 +134,7 @@ HpxKey = (function() {
             }
             else if (updateNeededTiles && ! tile) {
                 tile = this.hips.tileBuffer.addTile(url);
+                // console.log(tile.url);
                 view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
                 this.hips.lastUpdateDateNeededTiles = now;
                 view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);

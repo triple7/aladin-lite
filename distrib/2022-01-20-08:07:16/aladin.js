@@ -1126,6 +1126,7 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
     };
 
     HealpixIndex.prototype.queryDisc = function(nside, v, radius) {
+        console.log('[', nside, ',', v.x, ',',  v.y, ',', v.z, ',', radius, ']');
         var output = [];
 var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     output.push(ipix);
@@ -1136,7 +1137,7 @@ var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     HealpixIndex.queryDisc_cb = function(nside, v, radius, cb) {
         if (radius >PI_2) {
                     // console.log('radius ' +radius+' in nside '+nside);
-            // throw new Error(`query_disc: radius must <PI/2`);
+            throw new Error(`query_disc: radius must <PI/2`);
             return;
         }
         const pixrad = HealpixIndex.max_pixrad(nside);
@@ -5018,7 +5019,6 @@ Downloader = (function() {
     });
     
     const imageURL = next.url;
-            console.log('image URL'+imageURL);
     imageWorker.postMessage(imageURL);
 };
 	
@@ -10076,7 +10076,7 @@ HpxKey = (function() {
         hpxKey.parente = father.parente + 1;
         hpxKey.ancestor = father.ancestor || father;
 
-
+        // console.log('hpx child '+ hpxKey.norder+' '+hpxKey.npix);
         return hpxKey;
     };
 
@@ -10143,6 +10143,7 @@ HpxKey = (function() {
             }
             else if (updateNeededTiles && ! tile) {
                 tile = this.hips.tileBuffer.addTile(url);
+                // console.log(tile.url);
                 view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
                 this.hips.lastUpdateDateNeededTiles = now;
                 view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
@@ -10716,7 +10717,6 @@ HpxImageSurvey = (function() {
     });
     
         const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
-        console.log('image URL'+imageURL);
         imageWorker.postMessage(imageURL);
     
     };
@@ -12699,12 +12699,11 @@ View = (function() {
 
         var pixList;
         var npix = HealpixIndex.nside2Npix(nside);
-        // console.log('got npix '+npix);
         if (this.fov>80) {
             pixList = [];
-            for (var ipix=0; ipix<npix; ipix++) {
-                pixList.push(ipix);
-            }
+            // for (var ipix=0; ipix<npix; ipix++) {
+            //     pixList.push(ipix);
+            // }
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
@@ -12812,15 +12811,12 @@ View = (function() {
             else {
                 radius *= 1.1;
             }
-            
-            
-            if ((radius*Math.PI/180.0) > PI_2) {
-                        // console.log('nside '+nside+' ipix '+npix);
-                            // console.log('fov '+this.fov+' ratio '+this.ratio);
-            // console.log('radius with fov '+radius);
-            }
 
             pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
+            for (const i of pixList) {
+                console.log(i);
+            }
+            
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
@@ -13052,7 +13048,7 @@ View = (function() {
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
         var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
-        // console.log('nside is '+nside);
+        console.log('nside is '+nside);
          // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);
