@@ -80,19 +80,9 @@ Downloader = (function() {
 			return;
 		}
 
-       // Create a blob object for sending workers when downloading images
-        var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
-
 		this.nbDownloads++;
 		var downloaderRef = this;
-        
-                const imageWorker = new Worker(blob);
-        imageWorker.addEventListener('message', event => {
-          // Grab the message data from the event
-          const imageData = event.data
-          var objectURL = URL.createObjectURL(imageData.blob);
-          
-          next.img.onload = function() {
+		next.img.onload = function() {
 			downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
 		};
 			
@@ -108,12 +98,50 @@ Downloader = (function() {
 		        delete next.img.crossOrigin;
 		    }
 		}
-		next.img.src = objectURL;
-    });
+		next.img.src = next.url;
+	};
+	
     
-    const imageURL = next.url;
-    imageWorker.postMessage(imageURL);
-};
+//     Downloader.prototype.startDownloadNext = function() {
+//         // get next in queue
+//         var next = this.dlQueue.shift();
+//         if ( ! next) {
+//             return;
+//         }
+//
+//        // Create a blob object for sending workers when downloading images
+//         var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
+//
+//         this.nbDownloads++;
+//         var downloaderRef = this;
+//
+//                 const imageWorker = new Worker(blob);
+//         imageWorker.addEventListener('message', event => {
+//           // Grab the message data from the event
+//           const imageData = event.data
+//           var objectURL = URL.createObjectURL(imageData.blob);
+//
+//           next.img.onload = function() {
+//             downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
+//         };
+//
+//         next.img.onerror = function(e) {
+//             downloaderRef.completeDownload(this, false); // in this context, 'this' is the Image
+//         };
+//         if (next.cors) {
+//             next.img.crossOrigin = 'anonymous';
+//         }
+//
+//         else {
+//             if (next.img.crossOrigin !== undefined) {
+//                 delete next.img.crossOrigin;
+//             }
+//         }
+//         next.img.src = objectURL;
+//     });
+//     const imageURL = next.url;
+//     imageWorker.postMessage(imageURL);
+// };
 	
 	Downloader.prototype.completeDownload = function(img, success) {
         delete this.urlsInQueue[img.src];

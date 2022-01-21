@@ -1126,7 +1126,7 @@ HealpixIndex.pix2ang_ring = function(nside, ipix) {
     };
 
     HealpixIndex.prototype.queryDisc = function(nside, v, radius) {
-        console.log('[', nside, ',', v.x, ',',  v.y, ',', v.z, ',', radius, ']');
+        // console.log('[', nside, ',', v.x, ',',  v.y, ',', v.z, ',', radius, ']');
         var output = [];
 var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     output.push(ipix);
@@ -1137,7 +1137,7 @@ var pix = HealpixIndex.queryDisc_cb(nside, v, radius, function(ipix) {
     HealpixIndex.queryDisc_cb = function(nside, v, radius, cb) {
         if (radius >PI_2) {
                     // console.log('radius ' +radius+' in nside '+nside);
-            throw new Error(`query_disc: radius must <PI/2`);
+            // throw new Error(`query_disc: radius must <PI/2`);
             return;
         }
         const pixrad = HealpixIndex.max_pixrad(nside);
@@ -4987,19 +4987,9 @@ Downloader = (function() {
 			return;
 		}
 
-       // Create a blob object for sending workers when downloading images
-        var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
-
 		this.nbDownloads++;
 		var downloaderRef = this;
-        
-                const imageWorker = new Worker(blob);
-        imageWorker.addEventListener('message', event => {
-          // Grab the message data from the event
-          const imageData = event.data
-          var objectURL = URL.createObjectURL(imageData.blob);
-          
-          next.img.onload = function() {
+		next.img.onload = function() {
 			downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
 		};
 			
@@ -5015,12 +5005,50 @@ Downloader = (function() {
 		        delete next.img.crossOrigin;
 		    }
 		}
-		next.img.src = objectURL;
-    });
+		next.img.src = next.url;
+	};
+	
     
-    const imageURL = next.url;
-    imageWorker.postMessage(imageURL);
-};
+//     Downloader.prototype.startDownloadNext = function() {
+//         // get next in queue
+//         var next = this.dlQueue.shift();
+//         if ( ! next) {
+//             return;
+//         }
+//
+//        // Create a blob object for sending workers when downloading images
+//         var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
+//
+//         this.nbDownloads++;
+//         var downloaderRef = this;
+//
+//                 const imageWorker = new Worker(blob);
+//         imageWorker.addEventListener('message', event => {
+//           // Grab the message data from the event
+//           const imageData = event.data
+//           var objectURL = URL.createObjectURL(imageData.blob);
+//
+//           next.img.onload = function() {
+//             downloaderRef.completeDownload(this, true); // in this context, 'this' is the Image
+//         };
+//
+//         next.img.onerror = function(e) {
+//             downloaderRef.completeDownload(this, false); // in this context, 'this' is the Image
+//         };
+//         if (next.cors) {
+//             next.img.crossOrigin = 'anonymous';
+//         }
+//
+//         else {
+//             if (next.img.crossOrigin !== undefined) {
+//                 delete next.img.crossOrigin;
+//             }
+//         }
+//         next.img.src = objectURL;
+//     });
+//     const imageURL = next.url;
+//     imageWorker.postMessage(imageURL);
+// };
 	
 	Downloader.prototype.completeDownload = function(img, success) {
         delete this.urlsInQueue[img.src];
@@ -10048,7 +10076,7 @@ HpxKey = (function() {
     var HpxKey = function(norder, npix, hips, width, height, dx, dy, allskyTexture, allskyTextureSize) {
         this.norder = norder;
         this.npix = npix;
-
+        // console.log('new key '+norder+' '+npix);
         this.nside = Math.pow(2, norder);
 
         this.hips = hips; // survey to which this HpxKey is attached
@@ -10115,6 +10143,7 @@ HpxKey = (function() {
 
 
             // actual drawing
+
             var norder = this.ancestor==null ? this.norder : this.ancestor.norder;
             var npix = this.ancestor==null ? this.npix : this.ancestor.npix;
 
@@ -10143,7 +10172,6 @@ HpxKey = (function() {
             }
             else if (updateNeededTiles && ! tile) {
                 tile = this.hips.tileBuffer.addTile(url);
-                // console.log(tile.url);
                 view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
                 this.hips.lastUpdateDateNeededTiles = now;
                 view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
@@ -10155,7 +10183,7 @@ HpxKey = (function() {
 
         drawChildren: function(ctx, bCtx, view, index, maxParente) {
             var n=0;
-            var limitOrder = 24; // corresponds to NSIDE=8192, current HealpixJS limit
+            var limitOrder = 24; // corresponds to NSIDE=16777216, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
                 var children = this.getChildren();
                 if ( children!=null ) {
@@ -10683,43 +10711,75 @@ HpxImageSurvey = (function() {
     };
     
     HpxImageSurvey.prototype.retrieveAllskyTextures = function() {
-
-        // Create a blob object for sending workers when downloading images
-         var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
-
-    	var self = this;
     	// start loading of allsky
     	var img = new Image();
     	if (this.useCors) {
             img.crossOrigin = 'anonymous';
         }
-
-        const imageWorker = new Worker(blob);
-
-        imageWorker.addEventListener('message', event => {
-          // Grab the message data from the event
-          const imageData = event.data
-
-        
-          var objectURL = URL.createObjectURL(imageData.blob);
-          
+    	var self = this;
     	img.onload = function() {
             console.log('loaded image');
     		// sur ipad, le fichier qu'on récupère est 2 fois plus petit. Il faut donc déterminer la taille de la texture dynamiquement
     	    self.allskyTextureSize = img.width/27;
             self.allskyTexture = img;
    
+            /* 
+    		// récupération des 768 textures (NSIDE=4)
+    		for (var j=0; j<29; j++) {
+    			for (var i=0; i<27; i++) {
+    				var c = document.createElement('canvas');
+    				c.width = c.height = self.allskyTextureSize;
+    				c.allSkyTexture = true;
+    				var context = c.getContext('2d');
+    				context.drawImage(img, i*self.allskyTextureSize, j*self.allskyTextureSize, self.allskyTextureSize, self.allskyTextureSize, 0, 0, c.width, c.height);
+    				self.allskyTextures.push(c);
+    			}
+    		}
+            */
     		self.view.requestRedraw();
     	};
-
-        // img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
-        img.src = objectURL;
-    });
-    
-        const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
-        imageWorker.postMessage(imageURL);
+    	img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
     
     };
+
+    // HpxImageSurvey.prototype.retrieveAllskyTextures = function() {
+    //
+    //     // Create a blob object for sending workers when downloading images
+    //      var blob = new Blob(["self.addEventListener('message', async event => {const imageURL = event.data;const response = await fetch(imageURL);const blob = await response.blob();self.postMessage(imageURL: imageURL,blob: blob});})"], {type: 'application/javascript'});
+    //
+    //     var self = this;
+    //     // start loading of allsky
+    //     var img = new Image();
+    //     if (this.useCors) {
+    //         img.crossOrigin = 'anonymous';
+    //     }
+    //
+    //     const imageWorker = new Worker(blob);
+    //
+    //     imageWorker.addEventListener('message', event => {
+    //       // Grab the message data from the event
+    //       const imageData = event.data
+    //
+    //
+    //       var objectURL = URL.createObjectURL(imageData.blob);
+    //
+    //     img.onload = function() {
+    //         console.log('loaded image');
+    //         // sur ipad, le fichier qu'on récupère est 2 fois plus petit. Il faut donc déterminer la taille de la texture dynamiquement
+    //         self.allskyTextureSize = img.width/27;
+    //         self.allskyTexture = img;
+    //
+    //         self.view.requestRedraw();
+    //     };
+    //
+    //     // img.src = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+    //     img.src = objectURL;
+    // });
+    //
+    //     const imageURL = this.rootUrl + '/Norder3/Allsky.' + this.imgFormat + (this.additionalParams ? ('?' + this.additionalParams) : '');
+    //     imageWorker.postMessage(imageURL);
+    //
+    // };
 
     // Nouvelle méthode pour traitement des DEFORMATIONS
     /**
@@ -10744,6 +10804,7 @@ HpxImageSurvey = (function() {
                 cornersXYViewMapHighres = cornersXYViewMapAllsky;
             }
             else {
+                // console.log('norder for display '+norder4Display);
                 cornersXYViewMapHighres = view.getVisibleCells(norder4Display, this.cooFrame);
             }
         }
@@ -12813,13 +12874,14 @@ View = (function() {
             }
 
             pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
-            for (const i of pixList) {
-                console.log(i);
-            }
+            // for (const i of pixList) {
+            //     console.log(i);
+            // }
             
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
+                        // console.log('ipix center '+ ipixCenter);
             pixList.unshift(ipixCenter);
         }
         
@@ -12862,7 +12924,6 @@ View = (function() {
             if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
                 continue;
             }
-
 
 
             for (var k=0; k<4; k++) {
@@ -12908,6 +12969,7 @@ View = (function() {
                 }
             }
             
+            // console.log('push ipix '+ipix);
             cornersXYView.ipix = ipix;
             cells.push(cornersXYView);
         }
@@ -13048,7 +13110,7 @@ View = (function() {
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
         var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
-        console.log('nside is '+nside);
+        // console.log('nside is '+nside);
          // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);

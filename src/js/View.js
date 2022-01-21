@@ -1321,13 +1321,14 @@ View = (function() {
             }
 
             pixList = hpxIdx.queryDisc(hpxIdx.Nside, spatialVector, radius*Math.PI/180.0);
-            for (const i of pixList) {
-                console.log(i);
-            }
+            // for (const i of pixList) {
+            //     console.log(i);
+            // }
             
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
+                        // console.log('ipix center '+ ipixCenter);
             pixList.unshift(ipixCenter);
         }
         
@@ -1370,7 +1371,6 @@ View = (function() {
             if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
                 continue;
             }
-
 
 
             for (var k=0; k<4; k++) {
@@ -1416,6 +1416,7 @@ View = (function() {
                 }
             }
             
+            // console.log('push ipix '+ipix);
             cornersXYView.ipix = ipix;
             cells.push(cornersXYView);
         }
@@ -1556,7 +1557,7 @@ View = (function() {
         var resolution = this.fov / this.largestDim; // in degree/pixel
         var tileSize = 512; // TODO : read info from HpxImageSurvey.tileSize
         var nside = HealpixIndex.calculateNSide(3600*tileSize*resolution);
-        console.log('nside is '+nside);
+        // console.log('nside is '+nside);
          // 512 = size of a "tile" image
         var norder = Math.log(nside)/Math.log(2);
         norder = Math.max(norder, 1);

@@ -39,7 +39,7 @@ HpxKey = (function() {
     var HpxKey = function(norder, npix, hips, width, height, dx, dy, allskyTexture, allskyTextureSize) {
         this.norder = norder;
         this.npix = npix;
-
+        // console.log('new key '+norder+' '+npix);
         this.nside = Math.pow(2, norder);
 
         this.hips = hips; // survey to which this HpxKey is attached
@@ -106,6 +106,7 @@ HpxKey = (function() {
 
 
             // actual drawing
+
             var norder = this.ancestor==null ? this.norder : this.ancestor.norder;
             var npix = this.ancestor==null ? this.npix : this.ancestor.npix;
 
@@ -134,7 +135,6 @@ HpxKey = (function() {
             }
             else if (updateNeededTiles && ! tile) {
                 tile = this.hips.tileBuffer.addTile(url);
-                // console.log(tile.url);
                 view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
                 this.hips.lastUpdateDateNeededTiles = now;
                 view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
@@ -146,7 +146,7 @@ HpxKey = (function() {
 
         drawChildren: function(ctx, bCtx, view, index, maxParente) {
             var n=0;
-            var limitOrder = 24; // corresponds to NSIDE=8192, current HealpixJS limit
+            var limitOrder = 24; // corresponds to NSIDE=16777216, current HealpixJS limit
             if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
                 var children = this.getChildren();
                 if ( children!=null ) {
