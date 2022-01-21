@@ -463,11 +463,29 @@
         // new way of drawing
         if (subdivide) {
 
-            if (curOverlayNorder<=4) {
-                this.drawAllsky(ctx, bCtx, cornersXYViewMapAllsky, norder4Display, view, index);
+            if (norder4Display<=3) {
+                if (index == 0) {
+                    this.drawAllsky(ctx, cornersXYViewMapAllsky, norder4Display, view, index);
+                    if (this.view.downloader.tilesToDownload[index] == 0) {
+                        updateImageAtIndex(index, ctx);
+                        this.view.downloader.tilesToDownload[index] = -1;
+                    }
+                } else {
+                    // Draw to blendCanvas
+                    this.drawAllsky(bCtx, cornersXYViewMapAllsky, norder4Display, view, index);
+
+                    if (this.view.downloader.tilesToDownload[index] == 0) {
+                        // Send image to App
+                        updateImageAtIndex(index, bCtx);
+                        this.view.downloader.tilesToDownload[index] = -1;
+                    }
+
+                    this.compositeHueToLayer(ctx, bCtx, view, index);
+                }
+                
             }
             
-            if (curOverlayNorder>=3) {
+            if (norder4Display>=4) {
                 if (index == 0) {
                     this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
                     if (this.view.downloader.tilesToDownload[index] == 0) {
@@ -483,28 +501,7 @@
                         updateImageAtIndex(index, bCtx);
                         this.view.downloader.tilesToDownload[index] = -1;
                     }
-                    // Get overlay parameters
-                    const blend = view.imageSurveys[index].blendingMode;
-                    const hue = view.imageSurveys[index].colorCorrection;
-                    const alpha = view.imageSurveys[index].alpha;
-
-                    // Add hue
-                    bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
-                    bCtx.fillStyle = hue;
-                    bCtx.globalAlpha = 1.0; // Or should this be alpha?
-                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
-
-                    // Blend with imageCanvas
-                    overlay = bCtx.canvas;
-                    ctx.globalCompositeOperation = blend;
-                    ctx.globalAlpha = alpha;
-                    ctx.drawImage(overlay, 0, 0);
-
-                    // Clear blend canvas so it is ready for the next overlay
-                    bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
-                    bCtx.globalAlpha = 1.0;
-                    bCtx.fillStyle = "#000";
-                    bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+                    this.compositeHueToLayer(ctx, bCtx, view, index);
                 }
                 
             }
@@ -528,6 +525,31 @@
         }
 
     };
+
+    HpxImageSurvey.prototype.compositeHueToLayer = function(ctx, bCtx, view, index) {
+        // Get overlay parameters
+        const blend = view.imageSurveys[index].blendingMode;
+        const hue = view.imageSurveys[index].colorCorrection;
+        const alpha = view.imageSurveys[index].alpha;
+
+        // Add hue
+        bCtx.globalCompositeOperation = BlendingModeEnum.multiply;
+        bCtx.fillStyle = hue;
+        bCtx.globalAlpha = 1.0; // Or should this be alpha?
+        bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+
+        // Blend with imageCanvas
+        overlay = bCtx.canvas;
+        ctx.globalCompositeOperation = blend;
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(overlay, 0, 0);
+
+        // Clear blend canvas so it is ready for the next overlay
+        bCtx.globalCompositeOperation = BlendingModeEnum.sourceover;
+        bCtx.globalAlpha = 1.0;
+        bCtx.fillStyle = "#000";
+        bCtx.fillRect(0, 0, bCtx.canvas.width, bCtx.canvas.height);
+    }
 
     HpxImageSurvey.prototype.drawHighres = function(ctx, cornersXYViewMap, norder, view, index) {
 //////////////////////////////
@@ -909,7 +931,9 @@
         // bCtx.save();
         
         if (alpha) {
-            ctx.globalAlpha = alpha;
+            // TODO?? Workaround for having a base layer that isn't fully opaque
+            // currently alpha is applie for overlays when drawing bCtx on ctx later.
+            ctx.globalAlpha = 1.0;
             // bCtx.globalAlpha = alpha;
         }
         

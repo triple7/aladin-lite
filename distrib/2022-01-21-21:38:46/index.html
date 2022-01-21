@@ -34,12 +34,17 @@ Viewport</title>
 // Set the base image layer, no alpha transparency by default
             function setBaseImage(hipsID, index) {
                 imageIndex = index;
-                aladin.setBaseImageLayer(hipsID, index, "sourceover", "#000", 1.0); // Should this be "source-over"?
+                aladin.setBaseImageLayer(hipsID, index, "source-over", "#000", 1.0);
             }
             
             // Add a new overlay image
             function addSurveylayer(ID, index, blendingMode, hue, alpha) {
-                aladin.setImageSurvey(ID, index, blendingMode, hue, alpha);
+                console.log("adding survey layer " + ID + " at index " + index);
+                if (index == 0) {
+                    setBaseImage(ID, index);
+                } else if (index > 0) {
+                    aladin.setImageSurvey(ID, index, blendingMode, hue, alpha);
+                }
             }
             
             // Adding a non image survey layer
@@ -101,20 +106,19 @@ Viewport</title>
         function updateImage() {
                         setTimeout( function() {
                             const image = getImage();
-// window.webkit.messageHandlers.update_image.postMessage({
-// "image" : image,
-//     "index": imageIndex
-//             });
+window.webkit.messageHandlers.update_image.postMessage({
+"image" : image,
+    "index": imageIndex
+            });
     }, 3000);
 }
         
 function updateImageAtIndex(index, ctx) {
 let img = ctx.canvas.toDataURL('image/jpeg');
-console.log(img);
-// window.webkit.messageHandlers.update_image.postMessage({
-// "image" : img,
-//     "index": index
-//             });
+window.webkit.messageHandlers.update_image.postMessage({
+"image" : img,
+    "index": index.toString()
+            });
 }
 
         function getImage() {
@@ -163,7 +167,14 @@ console.log(img);
             console.log("TESTING");
         };
 
-addSurveylayer("P/allWISE/color", 1, "source-over", "#fff", 1.0);
+        aladin.createImageSurvey(
+            "DES/Mass/1",
+            "DES Mass 1",
+            "https://morpheus.astreos.space/DESMass",
+            "galactic",
+            3, {imgFormat: "png"});
+
+// addSurveylayer("DES/Mass/1", 4, "source-over", "#f0f", 1.0);
 
 // Testing an overlay survey image        
 // setTimeout( function() {
@@ -172,30 +183,30 @@ addSurveylayer("P/allWISE/color", 1, "source-over", "#fff", 1.0);
 //             // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f", 1.0);
 // }, 3000);
 
-setTimeout(function() {
-    aladin.gotoObject("andromeda");
-    aladin.adjustFovForObject("andromeda");
-}, 5000);
+// setTimeout(function() {
+//     aladin.gotoObject("andromeda");
+//     aladin.adjustFovForObject("andromeda");
+// }, 5000);
 
 // Various observers
         
-let canvas = document.querySelector('#aladin-lite-div');
-let canvasObserver = new MutationObserver(updateImage);        
-canvasObserver.observe(canvas, {
-    childList: true
-});
+// let canvas = document.querySelector('#aladin-lite-div');
+// let canvasObserver = new MutationObserver(updateImage);        
+// canvasObserver.observe(canvas, {
+//     childList: true
+// });
             
-let locationSelector = document.querySelector('.aladin-location');
-let locationObserver = new MutationObserver(updateImage);
-locationObserver.observe(locationSelector, {
-    childList: true
-});
+// let locationSelector = document.querySelector('.aladin-location');
+// let locationObserver = new MutationObserver(updateImage);
+// locationObserver.observe(locationSelector, {
+//     childList: true
+// });
 
-let fovSelector = document.querySelector('.aladin-fov');
-let fovObserver = new MutationObserver(updateImage);
-fovObserver.observe(fovSelector, {
-    childList: true
-});
+// let fovSelector = document.querySelector('.aladin-fov');
+// let fovObserver = new MutationObserver(updateImage);
+// fovObserver.observe(fovSelector, {
+//     childList: true
+// });
         
 </script>
 </body>
