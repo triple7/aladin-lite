@@ -11189,6 +11189,8 @@ ColorMap.MAPS = {};
         // bCtx.save();
         
         if (alpha) {
+            // TODO?? Workaround for having a base layer that isn't fully opaque
+            // currently alpha is applie for overlays when drawing bCtx on ctx later.
             ctx.globalAlpha = 1.0;
             // bCtx.globalAlpha = alpha;
         }
@@ -13327,7 +13329,7 @@ coeff = 0.02;
     
     View.prototype.toggleShowSurveyAtIndex = function(index) {
         const toggle = (this.displaySurvey[index]) ? false : true;
-        this.displaySurvey[i] = toggle;
+        this.displaySurvey[index] = toggle;
         this.requestRedraw();
     };
     
@@ -14446,6 +14448,7 @@ lonlat = CooConversion.GalacticToJ2000(lonlat);
     };
     
     Aladin.prototype.toggleShowSurveyAtIndex = function(index) {
+      console.log("toggling survey at index="+index);
         this.view.toggleShowSurveyAtIndex(index);
     };
     

@@ -838,6 +838,7 @@ lonlat = CooConversion.GalacticToJ2000(lonlat);
     };
     
     Aladin.prototype.toggleShowSurveyAtIndex = function(index) {
+      console.log("toggling survey at index="+index);
         this.view.toggleShowSurveyAtIndex(index);
     };
     

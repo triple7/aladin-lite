@@ -1796,7 +1796,7 @@
     
     View.prototype.toggleShowSurveyAtIndex = function(index) {
         const toggle = (this.displaySurvey[index]) ? false : true;
-        this.displaySurvey[i] = toggle;
+        this.displaySurvey[index] = toggle;
         this.requestRedraw();
     };
     

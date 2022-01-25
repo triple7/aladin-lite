@@ -48,23 +48,27 @@ Viewport</title>
             }
             
             // Adding a non image survey layer
-                            function setOverlayImageLayer(hipsID, alpha, index) {
-                            }
+            function setOverlayImageLayer(hipsID, alpha, index) {
+            }
 
-// Changing the image parameters for a given layer
-                            function setSurveyParametersAtIndex(index, blend, hue, alpha) {
-                                aladin.setSurveyParametersAtIndex(index, blend, hue, alpha);
-                            }
-                            
-                            function setCustomSurvey(hipsID, hipsName, url, frame, maxOrder, format, index) {
-                                imageIndex = index;
-                            // url can be local or remote
-                            aladin.setImageSurvey(aladin.createImageSurvey(hipsID, hipsName, url, frame, maxOrder, {imgFormat: format}));
-                            }
+            // Changing the image parameters for a given layer
+            function setSurveyParametersAtIndex(index, blend, hue, alpha) {
+                aladin.setSurveyParametersAtIndex(index, blend, hue, alpha);
+            }
+            
+            function setCustomSurvey(hipsID, hipsName, url, frame, maxOrder, format, index) {
+                imageIndex = index;
+            // url can be local or remote
+            aladin.setImageSurvey(aladin.createImageSurvey(hipsID, hipsName, url, frame, maxOrder, {imgFormat: format}));
+            }
                             
         function setFOV(fov) {
-        aladin.setFov(fov);
-}
+            aladin.setFov(fov);
+        }
+
+        function toggleShowSurveyAtIndex(index) {
+            aladin.toggleShowSurveyAtIndex(index);
+        }
 
         function getInfo() {
         const raDec = aladin.getRaDec();
@@ -87,7 +91,6 @@ Viewport</title>
             console.log('requesting object to aladin');
         aladin.gotoObject(objectName, {success: function() { 
             console.log('success in getting object');
-            sendImage();
         window.webkit.messageHandlers.go_to_object.postMessage({
         "msg" : objectName+" found",
             "result" : "true"
@@ -103,15 +106,17 @@ Viewport</title>
         });
         }
 
-        function updateImage() {
-                        setTimeout( function() {
-                            const image = getImage();
-window.webkit.messageHandlers.update_image.postMessage({
-"image" : image,
-    "index": imageIndex
-            });
-    }, 3000);
-}
+        function moveUpdateImage() {
+            if (! aladin.view.dragging) {
+                for (const [i, survey] of aladin.view.imageSurveys.entries()) {
+                    if (survey.view.downloader.tilesToDownload[i] < 0) {
+                        console.log("MOVING");
+                        survey.view.downloader.tilesToDownload[i] = 0; // will trigger updateImage to be called
+                        // aladin.view.requestRedraw(); // Not sure if this is necessary.
+                    }
+                }
+            }
+        }
         
 function updateImageAtIndex(index, ctx) {
 let img = ctx.canvas.toDataURL('image/jpeg');
@@ -167,21 +172,43 @@ window.webkit.messageHandlers.update_image.postMessage({
             console.log("TESTING");
         };
 
-        aladin.createImageSurvey(
-            "DES/Mass/1",
-            "DES Mass 1",
-            "https://morpheus.astreos.space/DESMass",
-            "galactic",
-            3, {imgFormat: "png"});
+        // aladin.createImageSurvey(
+        //     "DES/Mass/1",
+        //     "DES Mass 1",
+        //     "https://morpheus.astreos.space/DESMass",
+        //     "galactic",
+        //     3, {imgFormat: "png"});
 
-// addSurveylayer("DES/Mass/1", 4, "source-over", "#f0f", 1.0);
+        // aladin.createImageSurvey(
+        //     "P/2MASS/K",
+        //     "2MASS K",
+        //     "http://alasky.cds.unistra.fr/2MASS/K",
+        //     "equatorial",
+        //     9, {imgFormat: "jpg"}
+        // );
+
+        // aladin.createImageSurvey(
+        //     "P/2MASS/H",
+        //     "2MASS H",
+        //     "http://alasky.cds.unistra.fr/2MASS/H",
+        //     "equatorial",
+        //     9, {imgFormat: "jpg"}
+        // );
+
+        // aladin.createImageSurvey(
+        //     "P/2MASS/J",
+        //     "2MASS J",
+        //     "http://alasky.cds.unistra.fr/2MASS/J",
+        //     "equatorial",
+        //     9, {imgFormat: "jpg"}
+        // );
+
+        // addSurveylayer("DES/Mass/1", 4, "lighten", "#f0f", 1.0);
+        // addSurveylayer("P/2MASS/K", 1, "lighten", "#f00", 1.0);
+        // addSurveylayer("P/2MASS/H", 2, "lighten", "#0f0", 1.0);
+        // addSurveylayer("P/2MASS/J", 3, "lighten", "#00f", 1.0);
 
 // Testing an overlay survey image        
-// setTimeout( function() {
-//     // addSurveylayer("P/allWISE/W2", 1, "lighten", "#ff0000", 1.0);
-//         // addSurveylayer("P/HST/V", 2, "source-over", "#00f", 1.0);
-//             // addSurveylayer("P/PanSTARRS/DR1/color-z-zg-g", 3, "lighten", "#00f", 1.0);
-// }, 3000);
 
 // setTimeout(function() {
 //     aladin.gotoObject("andromeda");
@@ -191,19 +218,21 @@ window.webkit.messageHandlers.update_image.postMessage({
 // Various observers
         
 // let canvas = document.querySelector('#aladin-lite-div');
-// let canvasObserver = new MutationObserver(updateImage);        
+// let canvasObserver = new MutationObserver(moveUpdateImage);        
 // canvasObserver.observe(canvas, {
 //     childList: true
 // });
             
 // let locationSelector = document.querySelector('.aladin-location');
-// let locationObserver = new MutationObserver(updateImage);
+// let locationObserver = new MutationObserver(moveUpdateImage);
 // locationObserver.observe(locationSelector, {
 //     childList: true
 // });
+aladin.on("positionChanged", moveUpdateImage);
+aladin.on("zoomChanged", moveUpdateImage);
 
 // let fovSelector = document.querySelector('.aladin-fov');
-// let fovObserver = new MutationObserver(updateImage);
+// let fovObserver = new MutationObserver(moveUpdateImage);
 // fovObserver.observe(fovSelector, {
 //     childList: true
 // });
