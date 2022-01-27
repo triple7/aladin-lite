@@ -110,7 +110,7 @@ Viewport</title>
             if (! aladin.view.dragging) {
                 for (const [i, survey] of aladin.view.imageSurveys.entries()) {
                     if (survey.view.downloader.tilesToDownload[i] < 0) {
-                        console.log("MOVING");
+                        // console.log("MOVING");
                         survey.view.downloader.tilesToDownload[i] = 0; // will trigger updateImage to be called
                         // aladin.view.requestRedraw(); // Not sure if this is necessary.
                     }
@@ -150,12 +150,18 @@ window.webkit.messageHandlers.update_image.postMessage({
         aladin.on('objectHovered', function(object) {
             if (object) {
                 const detected = object.data.name;
-        if (detected.localeCompare(currentHover) != 0) {
-        currentHover = detected;
-        window.webkit.messageHandlers.object_detect.postMessage({
-        "object" : detected
+                const x = window.event.clientX;
+                const y = window.event.clientY;
+                if (detected != currentHover) {
+                    currentHover = detected;
+                    window.webkit.messageHandlers.object_detect.postMessage({
+                        "object" : detected,
+                        "x" : x.toString(),
+                        "y" : y.toString()
                     });
-        }
+                }
+            } else {
+                currentHover = '';
             }
         });
 
@@ -164,7 +170,7 @@ window.webkit.messageHandlers.update_image.postMessage({
                         aladin.addCatalog(cat);
             for (const s of sources.objects) {
                 console.log('adding '+s.id);
-                cat.addSources([A.marker(s.coord[0], s.coord[1], {popupTitle: s.id})]);
+                cat.addSources([A.marker(s.coord[0], s.coord[1], {popupTitle: s.id}, {name: s.id})]);
             }
         };
 
