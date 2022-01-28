@@ -468,7 +468,6 @@
                     this.drawAllsky(ctx, cornersXYViewMapAllsky, norder4Display, view, index);
                     if (this.view.downloader.tilesToDownload[index] == 0) {
                         updateImageAtIndex(index, ctx);
-                        this.view.downloader.tilesToDownload[index] = -1;
                     }
                 } else {
                     // Draw to blendCanvas
@@ -477,7 +476,6 @@
                     if (this.view.downloader.tilesToDownload[index] == 0) {
                         // Send image to App
                         updateImageAtIndex(index, bCtx);
-                        this.view.downloader.tilesToDownload[index] = -1;
                     }
 
                     this.compositeHueToLayer(ctx, bCtx, view, index);
@@ -490,7 +488,6 @@
                     this.drawHighres(ctx, cornersXYViewMapHighres, norder4Display, view, index);
                     if (this.view.downloader.tilesToDownload[index] == 0) {
                         updateImageAtIndex(index, ctx);
-                        this.view.downloader.tilesToDownload[index] = -1;
                     }
                 } else {
                     // Draw to blendCanvas
@@ -499,7 +496,6 @@
                     if (this.view.downloader.tilesToDownload[index] == 0) {
                         // Send image to App
                         updateImageAtIndex(index, bCtx);
-                        this.view.downloader.tilesToDownload[index] = -1;
                     }
                     this.compositeHueToLayer(ctx, bCtx, view, index);
                 }
