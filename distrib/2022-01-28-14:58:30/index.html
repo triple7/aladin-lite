@@ -119,22 +119,22 @@ Viewport</title>
     }
         
     function updateImageAtIndex(index, ctx) {
+        let img = ctx.canvas.toDataURL('image/jpeg');
         let oldFov = aladin.view.fov;
         let oldPos = aladin.getRaDec();
-        setTimeout(function(oldFov, oldPos) {
+        setTimeout(function(oldFov, oldPos, img) {
             let newFov = aladin.view.fov;
             let newPos = aladin.getRaDec();
 
             if (newFov == oldFov && arrayEquals(newPos, oldPos) && 
             aladin.view.downloader.tilesToDownload[index] == 0) {
-                let img = ctx.canvas.toDataURL('image/jpeg');
                 window.webkit.messageHandlers.update_image.postMessage({
                     "image" : img,
                     "index": index.toString()
                 });
                 aladin.view.downloader.tilesToDownload[index] = -1;
             }
-        }, 250, oldFov, oldPos); // delay may need adjusting
+        }, 250, oldFov, oldPos, img); // delay may need adjusting
         
     }
 
