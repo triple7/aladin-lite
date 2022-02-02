@@ -89,7 +89,8 @@ Viewport</title>
 
     function goToObject(objectName) {
         console.log('requesting object to aladin');
-        aladin.gotoObject(objectName, {success: function() { 
+        aladin.gotoObject(objectName, {success: function() {
+            aladin.adjustFovForObject(objectName);
             console.log('success in getting object');
             window.webkit.messageHandlers.go_to_object.postMessage({
                 "msg" : objectName+" found",
