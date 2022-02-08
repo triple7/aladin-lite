@@ -175,6 +175,16 @@ Viewport</title>
         }
     };
 
+    function showMarkers(show) {
+        markerLayers = document.getElementsByClassName("aladin-catalogCanvas");
+
+        console.log("hiding markers...");
+
+        for (var i = 0; i < markerLayers.length; i++) {
+            markerLayers[i].style.display = show ? "initial" : "none";
+        }
+    }
+
     function setShowGrid(show) {
         aladin.view.setShowGrid(show);
     }
@@ -207,6 +217,14 @@ Viewport</title>
             currentHover = '';
         }
     });
+
+    setTimeout(function(remove) {
+        showMarkers(remove);
+        
+        setTimeout(function(show) {
+            showMarkers(show);
+        }, 10000, true);
+    }, 10000, false);
 
         // aladin.createImageSurvey(
         //     "DES/Mass/1",

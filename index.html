@@ -175,6 +175,22 @@ Viewport</title>
         }
     };
 
+    /**
+     * Toggles the visibility of the marker canvas
+     * 
+     * @param {Bool} show   if true, turns on marker canvas. if false, turns off
+     *                      marker canvas.
+     */
+    function showMarkers(show) {
+        markerLayers = document.getElementsByClassName("aladin-catalogCanvas");
+
+        console.log("hiding markers...");
+
+        for (var i = 0; i < markerLayers.length; i++) {
+            markerLayers[i].style.display = show ? "initial" : "none";
+        }
+    }
+
     function setShowGrid(show) {
         aladin.view.setShowGrid(show);
     }
