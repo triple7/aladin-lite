@@ -563,10 +563,12 @@ cds.Catalog = (function() {
                 
                 s.x = xyview.vx;
                 s.y = xyview.vy;
+
                 if (catalogInstance._shapeIsFunction) {
                     catalogInstance.shape(s, ctx, catalogInstance.view.getViewParams());
                 }
                 else if (s.marker && s.useMarkerDefaultIcon) {
+                    // console.log('default marker at source size '+sourceSize+' '+s.x+' '+s.y+' '+catalogInstance.cacheMarkerCanvas.width+' '+catalogInstance.cacheMarkerCanvas.height);
                     ctx.drawImage(catalogInstance.cacheMarkerCanvas, s.x-sourceSize/2, s.y-sourceSize/2);
                 }
                 else {

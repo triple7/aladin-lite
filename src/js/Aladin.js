@@ -904,7 +904,7 @@ lonlat = CooConversion.GalacticToJ2000(lonlat);
     // @old
     Aladin.prototype.setImageSurvey = function(imageSurvey, index, blendingMode, hue, alpha, callback) {
         
-        console.log('setting survey at '+index+' blend mode '+blendingMode+' hue '+hue+' alpha '+alpha);
+        // console.log('setting survey at '+index+' blend mode '+blendingMode+' hue '+hue+' alpha '+alpha);
         this.view.setImageSurveyAtIndex(imageSurvey, index, blendingMode, hue, alpha, callback);
         this.updateSurveysDropdownList(HpxImageSurvey.getAvailableSurveys());
         if (this.options.log) {

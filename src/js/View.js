@@ -1072,6 +1072,7 @@
             this.catalogForPopup.draw(catalogCtx, this.projection, this.cooFrame, this.width, this.height, this.largestDim, this.zoomFactor);
         }
 
+        
         ////// 3. Draw overlays////////
         var overlayCtx = this.catalogCtx;
         if (this.overlays && this.overlays.length>0 && (! this.dragging  || View.DRAW_SOURCES_WHILE_DRAGGING)) {
