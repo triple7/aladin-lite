@@ -167,12 +167,24 @@ Viewport</title>
         aladin.addCatalog(cat);
     }
 
+    function sendViewCoordinate(RA, DEC, name) {
+        const xy = aladin.world2pix(RA, DEC);
+        window.webkit.messageHandlers.xy_coordinates.postMessage({
+            "x" : xy[0].toString(),
+            y : xy[1].toString(),
+            "name": name
+        });
+        
+    }
+    
     function addMarkers(catName, count, sources) {
         var cat = A.catalog({name: catName, sourceSize: count});
                     aladin.addCatalog(cat);
         for (const s of sources.objects) {
-            console.log('adding '+s.id);
+            // console.log('adding '+s.id);
+                        sendViewCoordinate(s.coord[0], s.coord[1], s.id);
             cat.addSources([A.marker(s.coord[0], s.coord[1], {popupTitle: s.id}, {name: s.id})]);
+
         }
     };
 

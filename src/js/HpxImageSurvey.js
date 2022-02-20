@@ -409,7 +409,7 @@
         }
     	var self = this;
     	img.onload = function() {
-            console.log('loaded image');
+            // console.log('loaded image');
     		// sur ipad, le fichier qu'on récupère est 2 fois plus petit. Il faut donc déterminer la taille de la texture dynamiquement
     	    self.allskyTextureSize = img.width/27;
             self.allskyTexture = img;
