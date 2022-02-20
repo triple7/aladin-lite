@@ -14212,7 +14212,7 @@ lonlat = CooConversion.GalacticToJ2000(lonlat);
                        function(data) { // errror callback
                             if (console) {
                                 console.log("Could not resolve object name " + targetName);
-                                console.log(data);
+                                // console.log(data);
                             }
                                 (typeof errorCallback === 'function') && errorCallback();
                        });
