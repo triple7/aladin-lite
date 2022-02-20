@@ -110,17 +110,18 @@ Viewport</title>
      * to a position where tiles have already loaded.
      */
     function moveUpdateImage() {
-        for (const [i, survey] of aladin.view.imageSurveys.entries()) {
-            if (survey.view.downloader.tilesToDownload[i] < 0) {
+        for (var i = 0; i < aladin.view.imageSurveys.length; i++) {
+            if (aladin.view.imageSurveys[i]) {
+                if (aladin.view.downloader.tilesToDownload[i] < 0) {
                 // will trigger updateImage to be called
-                survey.view.downloader.tilesToDownload[i] = 0;
+                aladin.view.downloader.tilesToDownload[i] = 0;
                 // aladin.view.requestRedraw(); // Not sure if this is necessary.
+                }
             }
         }
     }
         
     function updateImageAtIndex(index, ctx) {
-        console.log("attempting to update image at index " + index);
         let img = ctx.canvas.toDataURL('image/jpeg');
         let oldFov = aladin.view.fov;
         let oldPos = aladin.getRaDec();
@@ -130,9 +131,9 @@ Viewport</title>
 
             if (newFov == oldFov && arrayEquals(newPos, oldPos) && 
             aladin.view.downloader.tilesToDownload[index] == 0) {
-                // window.webkit.messageHandlers.update_image.postMessage({
-                //     "image" : img,
-                //     "index": index.toString()
+                window.webkit.messageHandlers.update_image.postMessage({
+                    "image" : img,
+                    "index": index.toString()
                 });
                 aladin.view.downloader.tilesToDownload[index] = -1;
             }
@@ -235,12 +236,12 @@ Viewport</title>
         }
     });
 
-        aladin.createImageSurvey(
-            "DES/Mass/1",
-            "DES Mass 1",
-            "https://morpheus.astreos.space/DESMass",
-            "galactic",
-            3, {imgFormat: "png"});
+        // aladin.createImageSurvey(
+        //     "DES/Mass/1",
+        //     "DES Mass 1",
+        //     "https://morpheus.astreos.space/DESMass",
+        //     "galactic",
+        //     3, {imgFormat: "png"});
 
         // aladin.createImageSurvey(
         //     "P/2MASS/K",
@@ -266,7 +267,7 @@ Viewport</title>
         //     9, {imgFormat: "jpg"}
         // );
 
-        addSurveylayer("DES/Mass/1", 4, "lighten", "#f0f", 0.25);
+        // addSurveylayer("DES/Mass/1", 4, "lighten", "#f0f", 0.25);
         // addSurveylayer("P/2MASS/K", 1, "lighten", "#f00", 1.0);
         // addSurveylayer("P/2MASS/H", 2, "lighten", "#0f0", 1.0);
         // addSurveylayer("P/2MASS/J", 3, "lighten", "#00f", 1.0);

@@ -10396,8 +10396,9 @@ ColorMap.MAPS = {};
 
     HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY = 1000; // in milliseconds
     
-    HpxImageSurvey.prototype.init = function(view, callback) {
+    HpxImageSurvey.prototype.init = function(view, index, callback) {
     	this.view = view;
+        this.index = index;
     	
         if (!this.cm) {
             this.cm = new ColorMap(this.view);
@@ -10673,6 +10674,7 @@ ColorMap.MAPS = {};
     		// sur ipad, le fichier qu'on récupère est 2 fois plus petit. Il faut donc déterminer la taille de la texture dynamiquement
     	    self.allskyTextureSize = img.width/27;
             self.allskyTexture = img;
+            self.view.downloader.tilesToDownload[self.index] = 0;
    
             /* 
     		// récupération des 768 textures (NSIDE=4)
@@ -13274,7 +13276,7 @@ coeff = 0.02;
         this.lastSurveyIdx = index;
         
         var self = this;
-        newImageSurvey.init(this, function() {
+        newImageSurvey.init(this, index, function() {
             //self.imageSurvey = newImageSurvey;
             self.computeNorder();
             newImageSurvey.isReady = true;

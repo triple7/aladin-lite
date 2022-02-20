@@ -1691,7 +1691,7 @@ View = (function() {
         this.projection.reverseLongitude(newImageSurvey.longitudeReversed); 
             
         var self = this;
-        newImageSurvey.init(this, function() {
+        newImageSurvey.init(this, idx, function() {
             //self.imageSurvey = newImageSurvey;
             self.imageSurveys.push(newImageSurvey);
             self.computeNorder();
@@ -1745,7 +1745,7 @@ View = (function() {
         this.lastSurveyIdx = index;
         
         var self = this;
-        newImageSurvey.init(this, function() {
+        newImageSurvey.init(this, index, function() {
             //self.imageSurvey = newImageSurvey;
             self.computeNorder();
             newImageSurvey.isReady = true;

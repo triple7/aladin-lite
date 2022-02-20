@@ -1685,11 +1685,11 @@ View = (function() {
         }
 
         newImageSurvey.isReady = false;
-        var idx = this.imageSurveys.length;
+        var index = this.imageSurveys.length;
         this.projection.reverseLongitude(newImageSurvey.longitudeReversed); 
             
         var self = this;
-        newImageSurvey.init(this, function() {
+        newImageSurvey.init(this, index, function() {
             //self.imageSurvey = newImageSurvey;
             self.imageSurveys.push(newImageSurvey);
             self.computeNorder();
